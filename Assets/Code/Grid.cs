@@ -1,6 +1,4 @@
-using CodeMonkey.Utils;
 using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class Grid<T>
@@ -27,9 +25,13 @@ public class Grid<T>
     private readonly T[,] gridArray;
     private readonly Vector2 originPosition;
 
-    public Grid(int width, int height, int cellSize) : this(width, height, cellSize, new(0, 0)) { }
+    public Grid(int width, int height, int cellSize) : this(width, height, cellSize, Vector2.zero, (_, _, _) => default) { }
 
-    public Grid(int width, int height, int cellSize, Vector2 originPosition)
+    public Grid(int width, int height, int cellSize, Vector2 originPosition) : this(width, height, cellSize, originPosition, (_, _, _) => default) { }
+
+    public Grid(int width, int height, int cellSize, Func<Grid<T>, int, int, T> createGridObject) : this(width, height, cellSize, Vector2.zero, createGridObject) { }
+
+    public Grid(int width, int height, int cellSize, Vector2 originPosition, Func<Grid<T>, int, int, T> createGridObject)
     {
         Width = width;
         Height = height;
@@ -37,6 +39,9 @@ public class Grid<T>
         this.originPosition = originPosition;
 
         gridArray = new T[width, height];
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                gridArray[x, y] = createGridObject(this, x, y);
     }
 
     public Vector2 GetWorldPosition(int x, int y) => new Vector2(x, y) * CellSize + originPosition;

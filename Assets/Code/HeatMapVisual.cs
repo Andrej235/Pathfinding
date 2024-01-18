@@ -17,11 +17,18 @@ public class HeatMapVisual : MonoBehaviour
             value.OnCellValueChanged += OnCellValueChanged;
             quadSize = new(value.CellSize, value.CellSize);
             grid = value;
+
+            mesh = new();
+            GetComponent<MeshFilter>().mesh = mesh;
+            CreateHeatMapVisual();
         }
     }
 
     private void Start()
     {
+        if (Grid == null)
+            return;
+
         mesh = new();
         GetComponent<MeshFilter>().mesh = mesh;
         CreateHeatMapVisual();
@@ -49,9 +56,16 @@ public class HeatMapVisual : MonoBehaviour
         mesh.triangles = triangles;
     }
 
-    private void OnCellValueChanged(object sender, Grid<int>.OnGridCellValueChangedEventArgs e)
+    bool updateMesh = false;
+    private void OnCellValueChanged(object sender, Grid<int>.OnGridCellValueChangedEventArgs e) => updateMesh = true;
+
+    private void LateUpdate()
     {
-        Vector2 cellValueUV = new((float)e.NewValue / HeatMapGrid.HEAT_MAP_MAX_VALUE, 0);
-        MeshUtils.AddToMesh(mesh, Grid.GetWorldPosition(e.X, e.Y) + quadSize * .5f, 0, quadSize, cellValueUV, cellValueUV);
+        //Gets triggered after a frame ends
+        if (updateMesh)
+        {
+            CreateHeatMapVisual();
+            updateMesh = false;
+        }
     }
 }

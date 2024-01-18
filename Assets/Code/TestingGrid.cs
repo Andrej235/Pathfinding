@@ -8,8 +8,8 @@ public class TestingGrid : MonoBehaviour
 
     void Awake()
     {
-        grid = new(40, 20, 5, new(-100, -45));
-        new GridDebugVisual<int>(grid);
+        grid = new(150, 60, 3, new(-170, -80));
+        //new GridDebugVisual<int>(grid);
 
         heatMapVisual.Grid = grid;
     }
@@ -19,7 +19,7 @@ public class TestingGrid : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             var mousePos = UtilsClass.GetMouseWorldPosition();
-            grid.AddValue(mousePos, 5, 7);
+            grid.AddValue(mousePos, 100, 5, 20);
         }
 
         if (Input.GetMouseButtonDown(1))

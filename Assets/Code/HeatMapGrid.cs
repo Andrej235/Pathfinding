@@ -17,25 +17,31 @@ public class HeatMapGrid : Grid<int>
 
     private void AddValue(int x, int y, int value) => this[x, y] += value;
 
-    public void AddValue(Vector2 worldPosition, int value, int range)
+    public void AddValue(Vector2 worldPosition, int value, int fullValueRange, int totalRange)
     {
+        int lowerValueAmount = Mathf.RoundToInt((float)value / (totalRange - fullValueRange));
         (int originX, int originY) = GetXY(worldPosition);
 
-        for (int x = 0; x < range; x++)
+        for (int x = 0; x < totalRange; x++)
         {
-            for (int y = 0; y < range - x; y++)
+            for (int y = 0; y < totalRange - x; y++)
             {
-                AddValue(originX + x, originY + y, value);
+                int radius = x + y;
+                int addValue = value;
+                if (radius > fullValueRange)
+                    addValue -= lowerValueAmount * (radius - fullValueRange);
+
+                AddValue(originX + x, originY + y, addValue);
 
                 if (x != 0)
-                    AddValue(originX - x, originY + y, value);
+                    AddValue(originX - x, originY + y, addValue);
 
                 if(y != 0)
                 {
-                    AddValue(originX + x, originY - y, value);
+                    AddValue(originX + x, originY - y, addValue);
 
                     if (x != 0)
-                        AddValue(originX - x, originY - y, value);
+                        AddValue(originX - x, originY - y, addValue);
                 }
             }
         }

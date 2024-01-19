@@ -1,5 +1,3 @@
-using System;
-
 public class PathNode
 {
     public readonly int x;
@@ -9,12 +7,15 @@ public class PathNode
     public int hCost;
     public int fCost;
 
+    public bool isWalkable;
+
     public PathNode cameFromNode;
 
-    public PathNode(int x, int y)
+    public PathNode(int x, int y, bool isWalkable = true)
     {
         this.x = x;
         this.y = y;
+        this.isWalkable = isWalkable;
     }
 
     public override string ToString() => $"{x},{y}";

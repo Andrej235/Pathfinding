@@ -2,21 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+#nullable enable
 public class Pathfinding
 {
     private const int MOVE_STRAIGHT_COST = 10;
     private const int MOVE_DIAGONAL_COST = 14;
 
     public Grid<PathNode> Grid { get; }
-    private List<PathNode> openList;
-    private List<PathNode> closedList;
+    private List<PathNode> openList = new();
+    private List<PathNode> closedList = new();
 
-    public Pathfinding(int width, int height)
-    {
-        Grid = new(width, height, 10, (grid, x, y) => new PathNode(x, y));
-    }
+    public Pathfinding(int width, int height) => Grid = new(width, height, 10, (grid, x, y) => new PathNode(x, y));
 
-    public List<PathNode> FindPath(int startX, int startY, int endX, int endY)
+    public List<PathNode>? FindPath(int startX, int startY, int endX, int endY)
     {
         PathNode startNode = Grid[startX, startY];
         PathNode endNode = Grid[endX, endY];
@@ -53,6 +51,12 @@ public class Pathfinding
                 if (closedList.Contains(neighbourNode))
                     continue;
 
+                if(!neighbourNode.isWalkable)
+                {
+                    closedList.Add(neighbourNode);
+                    continue;
+                }
+
                 int tentativeGCost = currentNode.gCost + CalculateDistanceCost(currentNode, neighbourNode); //CalculateDistanceCost returns 10 or 14
                 if (tentativeGCost < neighbourNode.gCost)
                 {
@@ -71,6 +75,7 @@ public class Pathfinding
         return null;
     }
 
+    //Precalculate
     private List<PathNode> GetNeighbourList(PathNode node)
     {
         List<PathNode> neighbours = new();
@@ -127,9 +132,9 @@ public class Pathfinding
         return MOVE_DIAGONAL_COST * Mathf.Min(xDistance, yDistance) + MOVE_STRAIGHT_COST * remaining;
     }
 
+    //Binary tree??
     private PathNode GetLowestFCostNode(List<PathNode> pathNodes)
     {
-        //TODO: Benchmark (in a non-unity project) and compare this method with 'pathNodes.OrderBy(x => x.fCost).First();'
         PathNode lowestFCostNode = pathNodes[0];
         for (int i = 1; i < pathNodes.Count; i++)
         {

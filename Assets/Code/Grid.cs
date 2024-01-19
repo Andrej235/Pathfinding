@@ -78,4 +78,6 @@ public class Grid<T>
             OnCellValueChanged?.Invoke(this, new(x, y, value));
         }
     }
+
+    public void RaiseOnCellValueChangedEvent(int x, int y) => OnCellValueChanged?.Invoke(this, new(x, y, this[x, y]));
 }

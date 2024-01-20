@@ -5,11 +5,11 @@ public class PathNode : FastPriorityQueueNode
 {
     public readonly int x;
     public readonly int y;
-    public readonly bool isWalkable;
+    public bool isWalkable;
 
     public int gCost;
     public int hCost;
-    public int fCost;
+    public int FCost => gCost + hCost;
 
     public List<PathNode> neighbours;
     public PathNode? cameFromNode;
@@ -23,6 +23,4 @@ public class PathNode : FastPriorityQueueNode
     }
 
     public override string ToString() => $"{x},{y}";
-
-    internal void CalculateFCost() => fCost = gCost + hCost;
 }

@@ -33,12 +33,12 @@ public class PathfindingTesting : MonoBehaviour
             }
         }
 
-/*        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1))
         {
             var mousePos = UtilsClass.GetMouseWorldPosition();
             (int x, int y) = pathfinding.Grid.GetXY(mousePos);
             pathfinding.Grid[x, y].isWalkable = !pathfinding.Grid[x, y].isWalkable;
             pathfinding.Grid.RaiseOnCellValueChangedEvent(x, y);
-        }*/
+        }
     }
 }

@@ -74,7 +74,6 @@ public class Pathfinding
             {
                 PathNode pathNode = Grid[x, y];
                 pathNode.gCost = int.MaxValue;
-                pathNode.CalculateFCost();
                 pathNode.cameFromNode = null;
 
                 OpenListQueue.ResetNode(pathNode);
@@ -83,8 +82,7 @@ public class Pathfinding
 
         startNode.gCost = 0;
         startNode.hCost = CalculateDistanceCost(startNode, endNode);
-        startNode.CalculateFCost();
-        OpenListQueue.Enqueue(startNode, startNode.fCost);
+        OpenListQueue.Enqueue(startNode, startNode.FCost);
 
         while (OpenListQueue.Count > 0)
         {
@@ -111,12 +109,11 @@ public class Pathfinding
                     neighbourNode.cameFromNode = currentNode;
                     neighbourNode.gCost = tentativeGCost;
                     neighbourNode.hCost = CalculateDistanceCost(neighbourNode, endNode);
-                    neighbourNode.CalculateFCost();
 
                     if (OpenListQueue.Contains(neighbourNode))
-                        OpenListQueue.UpdatePriority(neighbourNode, neighbourNode.fCost);
+                        OpenListQueue.UpdatePriority(neighbourNode, neighbourNode.FCost);
                     else
-                        OpenListQueue.Enqueue(neighbourNode, neighbourNode.fCost);
+                        OpenListQueue.Enqueue(neighbourNode, neighbourNode.FCost);
                 }
             }
         }

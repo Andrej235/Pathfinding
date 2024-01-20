@@ -16,7 +16,17 @@ public class Pathfinding
     public Pathfinding(int width, int height)
     {
         Grid = new(width, height, 10, (grid, x, y) => new PathNode(x, y));
+        InitializeNeighbours();
+    }
 
+    public Pathfinding(Grid<PathNode> grid)
+    {
+        Grid = grid;
+        InitializeNeighbours();
+    }
+
+    private void InitializeNeighbours()
+    {
         List<PathNode> GetNeighbourList(PathNode node)
         {
             List<PathNode> neighbours = new();
@@ -117,6 +127,14 @@ public class Pathfinding
 
         //Couldn't find a path
         return null;
+    }
+
+    public List<PathNode>? FindPath(Vector2 worldStartPos, Vector2 worldEndPos)
+    {
+        (int startX, int startY) = Grid.GetXY(worldStartPos);
+        (int endX, int endY) = Grid.GetXY(worldEndPos);
+
+        return FindPath(startX, startY, endX, endY);
     }
 
     private static List<PathNode> CalculatePath(PathNode node)

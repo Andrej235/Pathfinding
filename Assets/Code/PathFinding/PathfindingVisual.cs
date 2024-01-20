@@ -42,7 +42,7 @@ public class PathfindingVisual : MonoBehaviour
             {
                 int index = x * Pathfinding.Grid.Height + y;
 
-                Vector2 cellValueUV = Pathfinding.Grid[x, y].isWalkable ? Vector2.one : Vector2.zero;
+                Vector2 cellValueUV = Pathfinding.Grid[x, y].isWalkable ? Vector2.zero : Vector2.one;
                 MeshUtils.AddToMeshArrays(vertices, uvs, triangles, index, Pathfinding.Grid.GetWorldPosition(x, y) + quadSize * .5f, 0, quadSize, cellValueUV, cellValueUV);
             }
         }

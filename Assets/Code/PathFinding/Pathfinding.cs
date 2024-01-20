@@ -8,7 +8,7 @@ public class Pathfinding
     private const int MOVE_STRAIGHT_COST = 10;
     private const int MOVE_DIAGONAL_COST = 14;
 
-    public Priority_Queue.FastPriorityQueue<PathNode> OpenListQueue { get; set; }
+    public Priority_Queue.SimplePriorityQueue<PathNode> OpenListQueue { get; set; } = new();
 
     public Grid<PathNode> Grid { get; }
     private HashSet<PathNode> closedList = new();
@@ -16,7 +16,6 @@ public class Pathfinding
     public Pathfinding(int width, int height)
     {
         Grid = new(width, height, 10, (grid, x, y) => new PathNode(x, y));
-        OpenListQueue = new(width * height);
 
         List<PathNode> GetNeighbourList(PathNode node)
         {
@@ -75,8 +74,6 @@ public class Pathfinding
                 PathNode pathNode = Grid[x, y];
                 pathNode.gCost = int.MaxValue;
                 pathNode.cameFromNode = null;
-
-                OpenListQueue.ResetNode(pathNode);
             }
         }
 

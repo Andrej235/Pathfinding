@@ -1,7 +1,7 @@
 using Priority_Queue;
 using System.Collections.Generic;
 #nullable enable
-public class PathNode : FastPriorityQueueNode
+public class PathNode
 {
     public readonly int x;
     public readonly int y;

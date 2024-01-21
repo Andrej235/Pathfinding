@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ public class EnemyController : MonoBehaviour
 
     [SerializeField]
     private float visibilityRange;
+    private List<PathNode> path;
 
     void Start()
     {
@@ -18,6 +20,14 @@ public class EnemyController : MonoBehaviour
     {
         Gizmos.color = Color.white;
         Gizmos.DrawSphere(transform.position, visibilityRange);
+
+        if (path is null || path.Count < 2)
+            return;
+
+        for (int i = 0; i < path.Count - 1; i++)
+            Gizmos.DrawLine(
+                GridMaster.Instance.Grid.GetWorldPosition(path[i].x, path[i].y) + Vector2.one * (GridMaster.Instance.Grid.CellSize / 2),
+                GridMaster.Instance.Grid.GetWorldPosition(path[i + 1].x, path[i + 1].y) + Vector2.one * (GridMaster.Instance.Grid.CellSize / 2));
     }
 
     private void FixedUpdate()
@@ -40,18 +50,18 @@ public class EnemyController : MonoBehaviour
             return;
 
         movement.ClearCheckPoints();
-        var path = GridMaster.Instance.Pathfinding.FindPath((Vector2)transform.position, target.position);
+        path = GridMaster.Instance.Pathfinding.FindPath((Vector2)transform.position, target.position);
         if (path is null || path.Count < 2)
             return;
 
         path.Remove(path[0]); //Skip the first node so the enemy doesn't just circle around for some reason
 
-        for (int i = 0; i < path.Count - 1; i++)
+/*        for (int i = 0; i < path.Count - 1; i++)
             Debug.DrawLine(
                 GridMaster.Instance.Grid.GetWorldPosition(path[i].x, path[i].y) + Vector2.one * (GridMaster.Instance.Grid.CellSize / 2),
                 GridMaster.Instance.Grid.GetWorldPosition(path[i + 1].x, path[i + 1].y) + Vector2.one * (GridMaster.Instance.Grid.CellSize / 2),
                 Color.white,
-                .0225f);
+                .0225f);*/
 
         var checkpoints = path.Select(node => GridMaster.Instance.Grid.GetWorldPosition(node.x, node.y));
         movement.AddCheckPoint(checkpoints);

@@ -1,4 +1,5 @@
 using CodeMonkey.Utils;
+using System.Collections;
 using UnityEngine;
 
 [ExecuteInEditMode]
@@ -41,6 +42,8 @@ public class Editor : MonoBehaviour
 
     private void Update()
     {
+        GetComponent<MeshFilter>().mesh = mesh;
+
         Debug.Log("A");
 
         if (Input.GetMouseButtonDown(0))

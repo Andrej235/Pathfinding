@@ -19,7 +19,7 @@ public class PathfindingTesting : MonoBehaviour
 
     private void Update()
     {
-        /*        if (Input.GetMouseButtonDown(0))
+/*                if (Input.GetMouseButtonDown(0))
                 {
                     var mousePos = UtilsClass.GetMouseWorldPosition();
                     (int x, int y) = pathfinding.Grid.GetXY(mousePos);

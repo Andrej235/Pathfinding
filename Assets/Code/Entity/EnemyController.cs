@@ -13,10 +13,10 @@ public class EnemyController : MonoBehaviour
     void Start()
     {
         if (!gameObject.TryGetComponent(out movement))
-            Debug.LogError($"{nameof(PlayerController)} requires a component of type {nameof(ICheckPointBasedMovement)} to function");
+            Debug.LogError($"{nameof(EnemyController)} requires a component of type {nameof(ICheckPointBasedMovement)} to function");
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         Gizmos.color = Color.white;
         Gizmos.DrawSphere(transform.position, visibilityRange);
@@ -46,16 +46,34 @@ public class EnemyController : MonoBehaviour
             }
         }
 
-        if (target == null)
-            return;
+        //If enemy has a target, pathfind to it otherwise pathfind to position of its previous final checkpoint
+        if (target != null)
+        {
+            path = (List<PathNode>)GridMaster.Instance.Pathfinding.FindPath((Vector2)transform.position, target.position);
 
+            //If enemy couldnt find a path to its target, find a path to its previous final checkpoint
+            if (path is null || path.Count < 2)
+                FindPathToPreviousFinalCheckpoint();
+        }
+        else
+            FindPathToPreviousFinalCheckpoint();
+
+        void FindPathToPreviousFinalCheckpoint()
+        {
+            if (!movement.CheckPoints.Any())
+                return;
+
+            path = (List<PathNode>)GridMaster.Instance.Pathfinding.FindPath((Vector2)transform.position, movement.CheckPoints.Last());
+        }
+
+        //If enemy still doesnt have a path return
         movement.ClearCheckPoints();
-        path = GridMaster.Instance.Pathfinding.FindPath((Vector2)transform.position, target.position);
         if (path is null || path.Count < 2)
             return;
 
         path.Remove(path[0]); //Skip the first node so the enemy doesn't just circle around for some reason
 
+        //Add new checkpoints to movement script
         var checkpoints = path.Select(node => GridMaster.Instance.Grid.GetWorldPosition(node.x, node.y));
         movement.AddCheckPoint(checkpoints);
     }

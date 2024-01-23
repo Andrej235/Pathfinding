@@ -7,7 +7,7 @@ public class GridMaster : MonoBehaviour
     {
         Instance = this;
 
-        Grid = new(100, 100, 7, new(-100, -50), (g, x, y) => new(x, y));
+        Grid = new(50, 25, 7, new(-100, -50), (g, x, y) => new(x, y));
         Pathfinding = new(Grid);
     }
 

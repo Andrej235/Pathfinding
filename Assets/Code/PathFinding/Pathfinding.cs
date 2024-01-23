@@ -74,6 +74,9 @@ public class Pathfinding
         if (startNode is null || endNode is null)
             return null;
 
+        if (!startNode.isWalkable || !endNode.isWalkable)
+            return null;
+
         OpenListQueue.Clear();
         closedList = new();
 

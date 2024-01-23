@@ -56,13 +56,6 @@ public class EnemyController : MonoBehaviour
 
         path.Remove(path[0]); //Skip the first node so the enemy doesn't just circle around for some reason
 
-/*        for (int i = 0; i < path.Count - 1; i++)
-            Debug.DrawLine(
-                GridMaster.Instance.Grid.GetWorldPosition(path[i].x, path[i].y) + Vector2.one * (GridMaster.Instance.Grid.CellSize / 2),
-                GridMaster.Instance.Grid.GetWorldPosition(path[i + 1].x, path[i + 1].y) + Vector2.one * (GridMaster.Instance.Grid.CellSize / 2),
-                Color.white,
-                .0225f);*/
-
         var checkpoints = path.Select(node => GridMaster.Instance.Grid.GetWorldPosition(node.x, node.y));
         movement.AddCheckPoint(checkpoints);
     }

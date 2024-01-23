@@ -20,18 +20,18 @@ public class Grid<T>
 
     public int Width { get; }
     public int Height { get; }
-    public int CellSize { get; }
+    public float CellSize { get; }
 
     private readonly T[,] gridArray;
     private readonly Vector2 originPosition;
 
-    public Grid(int width, int height, int cellSize) : this(width, height, cellSize, Vector2.zero, (_, _, _) => default) { }
+    public Grid(int width, int height, float cellSize) : this(width, height, cellSize, Vector2.zero, (_, _, _) => default) { }
 
-    public Grid(int width, int height, int cellSize, Vector2 originPosition) : this(width, height, cellSize, originPosition, (_, _, _) => default) { }
+    public Grid(int width, int height, float cellSize, Vector2 originPosition) : this(width, height, cellSize, originPosition, (_, _, _) => default) { }
 
-    public Grid(int width, int height, int cellSize, Func<Grid<T>, int, int, T> createGridObject) : this(width, height, cellSize, Vector2.zero, createGridObject) { }
+    public Grid(int width, int height, float cellSize, Func<Grid<T>, int, int, T> createGridObject) : this(width, height, cellSize, Vector2.zero, createGridObject) { }
 
-    public Grid(int width, int height, int cellSize, Vector2 originPosition, Func<Grid<T>, int, int, T> createGridObject)
+    public Grid(int width, int height, float cellSize, Vector2 originPosition, Func<Grid<T>, int, int, T> createGridObject)
     {
         Width = width;
         Height = height;

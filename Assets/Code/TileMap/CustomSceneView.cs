@@ -1,9 +1,11 @@
+using CodeMonkey.Utils;
 using UnityEditor;
 using UnityEngine;
 
+#nullable enable
 public class CustomSceneView : SceneView
 {
-    Editor tileMapEditor = null;
+    private TileMapVisual? tileMapVisual = null;
 
     [MenuItem("A/Custom tile map scene view")]
     static void ShowWindow()
@@ -33,28 +35,41 @@ public class CustomSceneView : SceneView
         #endregion
 
         int controlID = GUIUtility.GetControlID(FocusType.Passive);
-        switch (Event.current.GetTypeForControl(controlID))
+        if (Event.current.GetTypeForControl(controlID) == EventType.MouseDown)
         {
-            case EventType.MouseDown:
-                Debug.Log("MouseDown");
-                break;
+            Debug.Log("MouseDown");
+            if (tileMapVisual == null || tileMapVisual.Grid is null)
+                return;
+
+            var mouseScreenPos = Event.current.mousePosition;
+            var pos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
+
+            var (x, y) = tileMapVisual.Grid.GetXY(pos);
+            tileMapVisual.Grid[x, y].isWalkable = !tileMapVisual.Grid[x, y].isWalkable;
+            tileMapVisual.RegenerateMesh();
         }
     }
 
     private void TileMapEditor()
     {
-        tileMapEditor = EditorGUILayout.ObjectField(tileMapEditor, typeof(Editor), true) as Editor;
-        if (tileMapEditor == null)
+        EditorGUI.BeginChangeCheck();
+        tileMapVisual = EditorGUILayout.ObjectField(tileMapVisual, typeof(TileMapVisual), true) as TileMapVisual;
+        if (EditorGUI.EndChangeCheck() && tileMapVisual != null)
+            tileMapVisual.GenerateMesh();
+
+        if (tileMapVisual == null)
             return;
 
         EditorGUI.BeginChangeCheck();
-        tileMapEditor.width = EditorGUILayout.IntField(tileMapEditor.width);
-        tileMapEditor.height = EditorGUILayout.IntField(tileMapEditor.height);
-        tileMapEditor.cellSize = EditorGUILayout.IntField(tileMapEditor.cellSize);
+        tileMapVisual.Width = EditorGUILayout.IntField(tileMapVisual.Width);
+        tileMapVisual.Height = EditorGUILayout.IntField(tileMapVisual.Height);
+        tileMapVisual.CellSize = EditorGUILayout.FloatField(tileMapVisual.CellSize);
+        tileMapVisual.ShowGrid = EditorGUILayout.Toggle(tileMapVisual.ShowGrid);
         if (EditorGUI.EndChangeCheck())
         {
             //Update tileMapEditor.Grid, call a function which does the same as OnValidate
             Debug.Log("C");
+            tileMapVisual.RegenerateMesh();
         }
     }
 }

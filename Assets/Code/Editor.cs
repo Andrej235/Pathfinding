@@ -40,17 +40,7 @@ public class Editor : MonoBehaviour
         mesh.triangles = triangles;
     }
 
-    private void Update()
-    {
-        GetComponent<MeshFilter>().mesh = mesh;
-
-        Debug.Log("A");
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            Debug.Log("B");
-        }
-    }
+    private void Update() => GetComponent<MeshFilter>().mesh = mesh;
 
     private void OnDrawGizmos()
     {

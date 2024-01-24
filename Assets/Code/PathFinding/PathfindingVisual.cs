@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PathfindingVisual : MonoBehaviour
 {
@@ -18,11 +20,8 @@ public class PathfindingVisual : MonoBehaviour
             pathfinding = value;
 
             mesh = new();
-            colliderMesh = new();
             GetComponent<MeshFilter>().mesh = mesh;
-            GetComponent<MeshCollider>().sharedMesh = colliderMesh;
             CreateHeatMapVisual();
-            CreateCollider();
         }
     }
 
@@ -32,11 +31,8 @@ public class PathfindingVisual : MonoBehaviour
             return;
 
         mesh = new();
-        colliderMesh = new();
         GetComponent<MeshFilter>().mesh = mesh;
-        GetComponent<MeshCollider>().sharedMesh = colliderMesh;
         CreateHeatMapVisual();
-        CreateCollider();
     }
 
     private void CreateHeatMapVisual()
@@ -58,29 +54,7 @@ public class PathfindingVisual : MonoBehaviour
         mesh.triangles = triangles;
     }
 
-    private void CreateCollider()
-    {
-        MeshUtils.CreateEmptyMeshArrays(Pathfinding.Grid.Width * Pathfinding.Grid.Height, out Vector3[] vertices, out Vector2[] uvs, out int[] triangles);
-        for (int x = 0; x < Pathfinding.Grid.Width; x++)
-        {
-            for (int y = 0; y < Pathfinding.Grid.Height; y++)
-            {
-                int index = x * Pathfinding.Grid.Height + y;
-
-                if (Pathfinding.Grid[x, y].isWalkable)
-                    continue;
-
-                MeshUtils.AddToMeshArrays(vertices, uvs, triangles, index, Pathfinding.Grid.GetWorldPosition(x, y) + quadSize * .5f, 0, quadSize, Vector2.zero, Vector2.zero);
-            }
-        }
-
-        colliderMesh.vertices = vertices;
-        colliderMesh.uv = uvs;
-        colliderMesh.triangles = triangles;
-    }
-
     bool updateMesh = false;
-    private Mesh colliderMesh;
 
     private void OnCellValueChanged(object sender, Grid<PathNode>.OnGridCellValueChangedEventArgs e) => updateMesh = true;
 
@@ -90,7 +64,6 @@ public class PathfindingVisual : MonoBehaviour
         if (updateMesh)
         {
             CreateHeatMapVisual();
-            CreateCollider();
             updateMesh = false;
         }
     }

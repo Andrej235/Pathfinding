@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Assets.Code.Grid;
 
 public class GridMaster : MonoBehaviour
 {

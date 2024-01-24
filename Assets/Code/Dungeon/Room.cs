@@ -1,3 +1,6 @@
+using Assets.Code.Grid;
+using UnityEngine;
+
 public record Room
 {
 	public enum RoomType
@@ -10,4 +13,6 @@ public record Room
 	}
 
 	public RoomType Type;
+	public Grid<TileMapNode> TileMap;
+	public Material Material;
 }

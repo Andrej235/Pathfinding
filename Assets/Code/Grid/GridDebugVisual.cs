@@ -1,4 +1,5 @@
 using CodeMonkey.Utils;
+using Assets.Code.Grid;
 using UnityEngine;
 
 public class GridDebugVisual<T>
@@ -29,5 +30,5 @@ public class GridDebugVisual<T>
             grid.OnCellValueChanged += OnCellValueChanged;
     }
 
-    private void OnCellValueChanged(object sender, Grid<T>.OnGridCellValueChangedEventArgs e) => debugTextArray[e.X, e.Y].text = e.NewValue.ToString();
+    private void OnCellValueChanged(object sender, OnGridCellValueChangedEventArgs<T> e) => debugTextArray[e.X, e.Y].text = e.NewValue.ToString();
 }

@@ -1,8 +1,7 @@
 ﻿using Assets.Code.Grid;
-using UnityEditor.MemoryProfiler;
+using CodeMonkey.Utils;
 using UnityEngine;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 namespace Assets.Code.TileMap
 {
@@ -10,13 +9,13 @@ namespace Assets.Code.TileMap
     {
         [SerializeField] private Material baseImageMaterial;
         [SerializeField] private GameObject baseImage;
-        [SerializeField] private GameObject canvas;
         private Grid<TileMapNode> grid;
         private Mesh mesh;
+        private Vector2 selectedUVValue = new();
 
         private void Start()
         {
-            grid = new(50, 50, 1, (g, x, y) => new(x, y, new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)), new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)), true));
+            grid = new(5, 5, 15, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
             Pathfinding pathfinding = new(grid);
             GenerateMesh();
 
@@ -24,12 +23,9 @@ namespace Assets.Code.TileMap
             int tiles = fullTextureWidth / 64;
             Vector2 tileTextureScale = new(1f / (tiles + 1), 1);
 
-            var baseImageLocation = baseImage.GetComponent<RectTransform>().position;
-            var baseimageWidth = baseImage.GetComponent<RectTransform>().rect.width;
-
             for (int i = 0; i < tiles; i++)
             {
-                var newImage = Instantiate(baseImage, baseImageLocation + new Vector3(baseimageWidth * i, 0), Quaternion.identity, canvas.transform);
+                var newImage = Instantiate(baseImage, new(), Quaternion.identity, baseImage.transform.parent);
                 Vector2 offset = new(i * (1f / tiles) + .01f, 0);
 
                 var newMaterial = new Material(baseImageMaterial)
@@ -38,12 +34,16 @@ namespace Assets.Code.TileMap
                     mainTextureOffset = offset
                 };
 
+                newImage.name = $"TileMap {i}";
                 newImage.GetComponent<Image>().material = newMaterial;
                 newImage.GetComponent<Button>().onClick.AddListener(() =>
                 {
                     Debug.Log(offset);
+                    selectedUVValue = offset;
                 });
             }
+
+            baseImage.SetActive(false);
         }
 
         private void Update()
@@ -51,6 +51,14 @@ namespace Assets.Code.TileMap
             if (Input.GetMouseButtonDown(0))
             {
                 Debug.Log("Click <---> Testing");
+
+                var (x, y) = grid.GetXY(UtilsClass.GetMouseWorldPosition());
+                if (grid[x, y] == null)
+                    return;
+
+                grid[x, y].UV00 = selectedUVValue;
+                grid[x, y].UV11 = selectedUVValue;
+                GenerateMesh();
             }
         }
 

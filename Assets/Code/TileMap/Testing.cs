@@ -9,12 +9,17 @@ namespace Assets.Code.TileMap
     {
         [SerializeField] private Material baseImageMaterial;
         [SerializeField] private GameObject baseImage;
+        [SerializeField] private Toggle colliderToggle;
+
         private Grid<TileMapNode> grid;
         private Mesh mesh;
         private Vector2 selectedUVValue = new();
+        private bool isColliderToggleChecked;
 
         private void Start()
         {
+            colliderToggle.onValueChanged.AddListener(ColliderToggleValueChanged);
+
             grid = new(5, 5, 15, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
             Pathfinding pathfinding = new(grid);
             GenerateMesh();
@@ -50,15 +55,25 @@ namespace Assets.Code.TileMap
         {
             if (Input.GetMouseButtonDown(0))
             {
-                Debug.Log("Click <---> Testing");
-
                 var (x, y) = grid.GetXY(UtilsClass.GetMouseWorldPosition());
                 if (grid[x, y] == null)
                     return;
 
-                grid[x, y].UV00 = selectedUVValue;
-                grid[x, y].UV11 = selectedUVValue;
-                GenerateMesh();
+                if (!isColliderToggleChecked)
+                {
+                    grid[x, y].UV00 = selectedUVValue;
+                    grid[x, y].UV11 = selectedUVValue;
+                    GenerateMesh();
+                }
+                else
+                {
+                    grid[x, y].isWalkable = !grid[x, y].isWalkable;
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.C) && isColliderToggleChecked)
+            {
+                grid.CreateColliders(transform);
             }
         }
 
@@ -69,6 +84,12 @@ namespace Assets.Code.TileMap
 
             mesh = grid.CreateMesh();
             GetComponent<MeshFilter>().mesh = mesh;
+        }
+
+        private void ColliderToggleValueChanged(bool isChecked)
+        {
+            isColliderToggleChecked = isChecked;
+            Debug.Log(isChecked);
         }
     }
 }

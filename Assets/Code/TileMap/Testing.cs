@@ -1,4 +1,5 @@
 ﻿using Assets.Code.Grid;
+using UnityEditor.MemoryProfiler;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -10,16 +11,14 @@ namespace Assets.Code.TileMap
         [SerializeField] private Material baseImageMaterial;
         [SerializeField] private GameObject baseImage;
         [SerializeField] private GameObject canvas;
+        private Grid<TileMapNode> grid;
+        private Mesh mesh;
 
         private void Start()
         {
-            Debug.Log("Start");
-            baseImage.GetComponent<Button>().onClick.AddListener(() => Debug.Log("AAA")); ;
-
-            Grid<TileMapNode> grid = new(50, 50, 1, (g, x, y) => new(x, y, new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)), new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)), true));
-            var mesh = grid.CreateMesh();
-            GetComponent<MeshFilter>().mesh = mesh;
+            grid = new(50, 50, 1, (g, x, y) => new(x, y, new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)), new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)), true));
             Pathfinding pathfinding = new(grid);
+            GenerateMesh();
 
             int fullTextureWidth = baseImageMaterial.mainTexture.width;
             int tiles = fullTextureWidth / 64;
@@ -46,9 +45,22 @@ namespace Assets.Code.TileMap
                 });
             }
         }
-        public void Test()
+
+        private void Update()
         {
-            Debug.Log("Click");
+            if (Input.GetMouseButtonDown(0))
+            {
+                Debug.Log("Click <---> Testing");
+            }
+        }
+
+        private void GenerateMesh()
+        {
+            if (mesh != null)
+                mesh.Clear();
+
+            mesh = grid.CreateMesh();
+            GetComponent<MeshFilter>().mesh = mesh;
         }
     }
 }

@@ -77,7 +77,7 @@ namespace CodeMonkey.MonoBehaviours {
 
             Vector3 cameraMoveDir = (cameraFollowPosition - transform.position).normalized;
             float distance = Vector3.Distance(cameraFollowPosition, transform.position);
-            float cameraMoveSpeed = 3f;
+            float cameraMoveSpeed = 5f;
 
             if (distance > 0) {
                 Vector3 newCameraPosition = transform.position + cameraMoveDir * distance * cameraMoveSpeed * Time.deltaTime;
@@ -98,7 +98,7 @@ namespace CodeMonkey.MonoBehaviours {
             float cameraZoom = GetCameraZoomFunc();
 
             float cameraZoomDifference = cameraZoom - myCamera.orthographicSize;
-            float cameraZoomSpeed = 1f;
+            float cameraZoomSpeed = 2f;
 
             myCamera.orthographicSize += cameraZoomDifference * cameraZoomSpeed * Time.deltaTime;
 

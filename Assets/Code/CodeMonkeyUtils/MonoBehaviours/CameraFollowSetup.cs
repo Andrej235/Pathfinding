@@ -9,27 +9,42 @@
                unitycodemonkey.com
     --------------------------------------------------
  */
- 
+
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CodeMonkey.MonoBehaviours {
+namespace CodeMonkey.MonoBehaviours
+{
 
     /*
      * Easy set up for CameraFollow, it will follow the transform with zoom
      * */
-    public class CameraFollowSetup : MonoBehaviour {
+    public class CameraFollowSetup : MonoBehaviour
+    {
 
         [SerializeField] private CameraFollow cameraFollow = null;
         [SerializeField] private Transform followTransform = null;
         [SerializeField] private float zoom = 50f;
 
-        private void Start() {
-            if (followTransform == null) {
+        private void Start()
+        {
+            if (followTransform == null)
+            {
                 Debug.LogError("followTransform is null! Intended?");
                 cameraFollow.Setup(() => Vector3.zero, () => zoom, true, true);
-            } else {
+            }
+            else
+            {
                 cameraFollow.Setup(() => followTransform.position, () => zoom, true, true);
+            }
+        }
+
+        private void Update()
+        {
+            if (Input.mouseScrollDelta.y != 0)
+            {
+                zoom -= Input.mouseScrollDelta.y;
+                cameraFollow.SetCameraZoom(zoom);
             }
         }
     }

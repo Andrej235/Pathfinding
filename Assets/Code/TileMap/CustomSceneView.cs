@@ -37,7 +37,7 @@ public class CustomSceneView : SceneView
         int controlID = GUIUtility.GetControlID(FocusType.Passive);
         if (Event.current.GetTypeForControl(controlID) == EventType.MouseDown)
         {
-            Debug.Log("MouseDown");
+            Debug.Log("MouseDown" + Camera.main.ScreenToWorldPoint(Event.current.mousePosition));
             if (tileMapVisual == null || tileMapVisual.Grid is null)
                 return;
 

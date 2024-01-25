@@ -1,4 +1,5 @@
 using UnityEngine;
+using Assets.Code.Grid;
 
 public class PathfindingVisual : MonoBehaviour
 {
@@ -53,7 +54,8 @@ public class PathfindingVisual : MonoBehaviour
     }
 
     bool updateMesh = false;
-    private void OnCellValueChanged(object sender, Grid<PathNode>.OnGridCellValueChangedEventArgs e) => updateMesh = true;
+
+    private void OnCellValueChanged(object sender, OnGridCellValueChangedEventArgs e) => updateMesh = true;
 
     private void LateUpdate()
     {

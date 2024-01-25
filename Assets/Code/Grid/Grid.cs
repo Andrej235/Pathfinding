@@ -37,12 +37,6 @@ namespace Assets.Code.Grid
         public Vector2 GetWorldPosition(int x, int y) => new Vector2(x, y) * CellSize + originPosition;
         public (int x, int y) GetXY(Vector2 worldPosition) => new(Mathf.FloorToInt((worldPosition - originPosition).x / CellSize), Mathf.FloorToInt((worldPosition - originPosition).y / CellSize));
 
-    /*    public void SetValue(Vector2 worldPosition, T value)
-        {
-            (int x, int y) = GetXY(worldPosition);
-            this[x, y] = value;
-        }*/
-
         public T GetValue(Vector2 worldPosition)
         {
             (int x, int y) = GetXY(worldPosition);
@@ -58,15 +52,6 @@ namespace Assets.Code.Grid
 
                 return GridArray[x, y];
             }
-
-    /*        set
-            {
-                if (x < 0 || y < 0 || x >= Width || y >= Height)
-                    return;
-
-                gridArray[x, y] = value;
-                OnCellValueChanged?.Invoke(this, new(x, y, value));
-            }*/
         }
 
         public void RaiseOnCellValueChangedEvent(int x, int y) => OnCellValueChanged?.Invoke(this, new(x, y, this[x, y]));

@@ -55,7 +55,7 @@ public class PathfindingVisual : MonoBehaviour
 
     bool updateMesh = false;
 
-    private void OnCellValueChanged(object sender, OnGridCellValueChangedEventArgs<PathNode> e) => updateMesh = true;
+    private void OnCellValueChanged(object sender, OnGridCellValueChangedEventArgs e) => updateMesh = true;
 
     private void LateUpdate()
     {

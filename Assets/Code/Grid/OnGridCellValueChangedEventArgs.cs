@@ -2,9 +2,9 @@
 
 namespace Assets.Code.Grid
 {
-    public class OnGridCellValueChangedEventArgs<T> : EventArgs
+    public class OnGridCellValueChangedEventArgs : EventArgs
     {
-        public OnGridCellValueChangedEventArgs(int x, int y, T newValue)
+        public OnGridCellValueChangedEventArgs(int x, int y, object newValue)
         {
             X = x;
             Y = y;
@@ -13,6 +13,6 @@ namespace Assets.Code.Grid
 
         public int X { get; }
         public int Y { get; }
-        public T NewValue { get; }
+        public object NewValue { get; }
     }
 }

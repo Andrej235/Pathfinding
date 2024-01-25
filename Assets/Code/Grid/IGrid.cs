@@ -10,7 +10,7 @@ namespace Assets.Code.Grid
         public float CellSize { get; }
         T[,] GridArray { get; }
 
-        public event EventHandler<OnGridCellValueChangedEventArgs<object>> OnCellValueChanged; //Probably will need to replace object with something 
+        public event EventHandler<OnGridCellValueChangedEventArgs> OnCellValueChanged;
         public void RaiseOnCellValueChangedEvent(int x, int y);
 
         T this[int x, int y] { get; }

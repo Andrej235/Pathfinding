@@ -6,7 +6,7 @@ public class GridDebugVisual<T>
 {
     private readonly TextMesh[,] debugTextArray;
 
-    public GridDebugVisual(Grid<T> grid, bool includeText = true, Transform textParent = null)
+    public GridDebugVisual(IGrid<T> grid, bool includeText = true, Transform textParent = null)
     {
         if (includeText)
             debugTextArray = new TextMesh[grid.Width, grid.Height];
@@ -30,5 +30,5 @@ public class GridDebugVisual<T>
             grid.OnCellValueChanged += OnCellValueChanged;
     }
 
-    private void OnCellValueChanged(object sender, OnGridCellValueChangedEventArgs<T> e) => debugTextArray[e.X, e.Y].text = e.NewValue.ToString();
+    private void OnCellValueChanged(object sender, OnGridCellValueChangedEventArgs e) => debugTextArray[e.X, e.Y].text = e.NewValue.ToString();
 }

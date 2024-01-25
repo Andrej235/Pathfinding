@@ -5,7 +5,7 @@ namespace Assets.Code.TileMap
 {
     public static class TileMapLoadingService
     {
-        public static Mesh CreateMesh<T>(this Grid<T> grid) where T : TileMapNode
+        public static Mesh CreateMesh<T>(this IGrid<T> grid) where T : TileMapNode
         {
             Vector2 quadSize = new(grid.CellSize, grid.CellSize);
             Mesh mesh = new();

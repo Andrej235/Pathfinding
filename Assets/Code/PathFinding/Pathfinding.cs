@@ -11,16 +11,10 @@ public class Pathfinding
 
     public Priority_Queue.SimplePriorityQueue<PathNode> OpenListQueue { get; set; } = new();
 
-    public Grid<PathNode> Grid { get; }
+    public IGrid<PathNode> Grid { get; }
     private HashSet<PathNode> closedList = new();
 
-    public Pathfinding(int width, int height)
-    {
-        Grid = new(width, height, 10, (grid, x, y) => new PathNode(x, y));
-        InitializeNeighbours();
-    }
-
-    public Pathfinding(Grid<PathNode> grid)
+    public Pathfinding(IGrid<PathNode> grid)
     {
         Grid = grid;
         InitializeNeighbours();

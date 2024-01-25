@@ -3,14 +3,15 @@ using UnityEngine;
 
 namespace Assets.Code.Grid
 {
-    public class Grid<T>
+    public class Grid<T> : IGrid<T>
     {
-        public event EventHandler<OnGridCellValueChangedEventArgs<T>> OnCellValueChanged;
+        public event EventHandler<OnGridCellValueChangedEventArgs> OnCellValueChanged;
 
         public int Width { get; }
         public int Height { get; }
         public float CellSize { get; }
 
+        public T[,] GridArray => gridArray;
         private readonly T[,] gridArray;
         private readonly Vector2 originPosition;
 
@@ -55,7 +56,7 @@ namespace Assets.Code.Grid
                 if (x < 0 || y < 0 || x >= Width || y >= Height)
                     return default;
 
-                return gridArray[x, y];
+                return GridArray[x, y];
             }
 
     /*        set

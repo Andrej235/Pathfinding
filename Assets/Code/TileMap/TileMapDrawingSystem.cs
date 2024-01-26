@@ -2,11 +2,15 @@
 using CodeMonkey.Utils;
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using System.IO;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using static Unity.Burst.Intrinsics.Arm;
+using UnityEngine.Windows;
+using Directory = System.IO.Directory;
+using File = System.IO.File;
+using Input = UnityEngine.Input;
 
 namespace Assets.Code.TileMap
 {
@@ -234,9 +238,9 @@ namespace Assets.Code.TileMap
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            system.baseImage = (GameObject)EditorGUILayout.ObjectField(system.baseImage, typeof(GameObject), false, GUILayout.Width(150));
+            system.baseImage = (GameObject)EditorGUILayout.ObjectField(system.baseImage, typeof(GameObject), true, GUILayout.Width(150));
             GUILayout.FlexibleSpace();
-            system.colliderToggle = (Toggle)EditorGUILayout.ObjectField(system.colliderToggle, typeof(Toggle), false, GUILayout.Width(150));
+            system.colliderToggle = (Toggle)EditorGUILayout.ObjectField(system.colliderToggle, typeof(Toggle), true, GUILayout.Width(150));
             GUILayout.EndHorizontal();
             #endregion
 
@@ -266,54 +270,80 @@ namespace Assets.Code.TileMap
 
             GUILayout.Space(10);
 
-            dungeon = (DungeonScriptableObject)EditorGUILayout.ObjectField(dungeon, typeof(DungeonScriptableObject), false);
-            if (dungeon != null)
+            if (GUILayout.Button("Load"))
             {
-                if (GUILayout.Button("Load"))
+                try
                 {
-                    system.height = dungeon.GridHeight;
-                    system.width = dungeon.GridWidth;
-                    system.cellSize = dungeon.GridCellSize;
-                    system.SetGrid(new(dungeon.GridWidth, dungeon.GridHeight, dungeon.GridCellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true)));
+                    string gridJsonFile = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), @"Assets\JSONFiles\asdasd.json"));
+                    TileMapGridDTO gridData = JsonUtility.FromJson<TileMapGridDTO>(gridJsonFile);
+
+                    system.width = gridData.GridWidth;
+                    system.height = gridData.GridHeight;
+                    system.cellSize = gridData.GridCellSize;
+
+                    system.CreateGrid();
+
+                    Grid<TileMapNode> Grid = new(system.width, system.height, system.cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
+                    system.SetGrid(Grid);
+                    Grid.CreateOuterWalls();
+
+                    system.GenerateMesh();
+                    system.GenerateColliders();
 
                     for (int i = 0; i < system.width; i++)
                     {
                         for (int j = 0; j < system.height; j++)
                         {
-                            var a = system.Grid[i, j];
-                            var b = dungeon.GridUV00s[i, j];
+                            system.Grid[i, j].UV00 = gridData.GridUV00s[i * system.height + j];
+                            system.Grid[i, j].UV11 = gridData.GridUV11s[i * system.height + j];
 
-                            system.Grid[i, j].UV00 = dungeon.GridUV00s[i, j];
-                            system.Grid[i, j].UV11 = dungeon.GridUV11s[i, j];
+                            system.Grid[i, j].isWalkable = gridData.GridIsWalkables[i * system.height + j];
                         }
                     }
 
                     system.GenerateMesh();
                     system.GenerateColliders();
                 }
-
-                if (GUILayout.Button("Save"))
+                catch (Exception e)
                 {
-                    dungeon.Name = "Test 1";
-                    dungeon.GridHeight = system.height;
-                    dungeon.GridWidth = system.width;
-                    dungeon.GridCellSize = system.cellSize;
-
-                    Vector2[,] uv00s = new Vector2[system.width, system.height];
-                    Vector2[,] uv11s = new Vector2[system.width, system.height];
-
-                    for (int i = 0; i < system.width; i++)
-                    {
-                        for (int j = 0; j < system.height; j++)
-                        {
-                            uv00s[i, j] = system.Grid[i, j].UV00;
-                            uv11s[i, j] = system.Grid[i, j].UV11;
-                        }
-                    }
-
-                    //dungeon.GridUV00s = uv00s;
-                    dungeon.GridUV11s = uv11s;
+                    Debug.Log(e.InnerException.Message + "-----> : " + e);
                 }
+            }
+
+            if (GUILayout.Button("Save"))
+            {
+                List<List<Vector2>> uv00s = new();
+                List<List<Vector2>> uv11s = new();
+
+                List<List<bool>> walkable = new();
+
+
+                for (int i = 0; i < system.width; i++)
+                {
+                    uv00s.Add(new());
+                    uv11s.Add(new());
+                    walkable.Add(new());
+
+                    for (int j = 0; j < system.height; j++)
+                    {
+                        uv00s[i].Add(system.Grid[i, j].UV00);
+                        uv11s[i].Add(system.Grid[i, j].UV11);
+
+                        walkable[i].Add(system.Grid[i, j].isWalkable);
+                    }
+                }
+
+                TileMapGridDTO dto = new(
+                    gridWidth: system.width,
+                    gridHeight: system.height,
+                    gridCellSize: system.cellSize,
+                    gridUV00s: uv00s,
+                    gridUV11s: uv11s,
+                    gridIsWalkables: walkable
+                    );
+
+                string gridJsonFile = JsonUtility.ToJson(dto);
+                File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), @"Assets\JSONFiles\asdasd.json"), gridJsonFile);
             }
 
             if (GUILayout.Button("Create a new grid"))

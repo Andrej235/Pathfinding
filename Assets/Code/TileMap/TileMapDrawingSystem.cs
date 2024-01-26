@@ -60,35 +60,19 @@ namespace Assets.Code.TileMap
         {
             if (grid != null)
             {
-                if (grid.Height != height)
+                if (grid.Height != height || grid.Width != width)
                 {
                     var newGrid = new Grid<TileMapNode>(width, height, cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
+                    var minWidth = Math.Min(grid.Width, width);
+                    var minHeight = Math.Min(grid.Height, height);
 
-                    for (int i = 0; i < Math.Min(grid.Width, width); i++)
+                    for (int i = 1; i < minWidth - 1; i++)
                     {
-                        for (int j = 0; j < Math.Min(grid.Height, height) - 1; j++)
+                        for (int j = 1; j < minHeight - 1; j++)
                         {
-                            newGrid[newGrid.Width - 1 - i, j].UV00 = grid[grid.Width - 1 - i, j].UV00;
-                            newGrid[newGrid.Width - 1 - i, j].UV11 = grid[grid.Width - 1 - i, j].UV11;
-                        }
-                    }
-
-                    grid = newGrid;
-                    grid.CreateOuterWalls();
-                    GenerateMesh();
-                    GenerateColliders();
-                }
-
-                if (grid.Width != width)
-                {
-                    var newGrid = new Grid<TileMapNode>(width, height, cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
-
-                    for (int i = 0; i < Math.Min(grid.Width, width) - 1; i++)
-                    {
-                        for (int j = 0; j < Math.Min(grid.Height, height); j++)
-                        {
-                            newGrid[newGrid.Width - 1 - i, j].UV00 = grid[grid.Width - 1 - i, j].UV00;
-                            newGrid[newGrid.Width - 1 - i, j].UV11 = grid[grid.Width - 1 - i, j].UV11;
+                            newGrid[i, j].UV00 = grid[i, j].UV00;
+                            newGrid[i, j].UV11 = grid[i, j].UV11;
+                            newGrid[i, j].isWalkable = grid[i, j].isWalkable;
                         }
                     }
 

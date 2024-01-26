@@ -6,6 +6,7 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using static Unity.Burst.Intrinsics.Arm;
 
 namespace Assets.Code.TileMap
 {
@@ -25,7 +26,7 @@ namespace Assets.Code.TileMap
         private Mesh mesh;
         private Mesh colliderMesh;
 
-        private Grid<TileMapNode> grid;
+        public Grid<TileMapNode> Grid { get; private set; }
         private Vector2 selectedUVValue = new();
         private bool isColliderToggleChecked;
         private bool areMeshesLoaded = false;
@@ -58,41 +59,50 @@ namespace Assets.Code.TileMap
 
         public void CreateGrid()
         {
-            if (grid != null)
+            if (Grid != null)
             {
-                if (grid.Height != height || grid.Width != width)
+                if (Grid.Height != height || Grid.Width != width)
                 {
                     var newGrid = new Grid<TileMapNode>(width, height, cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
-                    var minWidth = Math.Min(grid.Width, width);
-                    var minHeight = Math.Min(grid.Height, height);
+                    var minWidth = Math.Min(Grid.Width, width);
+                    var minHeight = Math.Min(Grid.Height, height);
 
                     for (int i = 1; i < minWidth - 1; i++)
                     {
                         for (int j = 1; j < minHeight - 1; j++)
                         {
-                            newGrid[i, j].UV00 = grid[i, j].UV00;
-                            newGrid[i, j].UV11 = grid[i, j].UV11;
-                            newGrid[i, j].isWalkable = grid[i, j].isWalkable;
+                            newGrid[i, j].UV00 = Grid[i, j].UV00;
+                            newGrid[i, j].UV11 = Grid[i, j].UV11;
+                            newGrid[i, j].isWalkable = Grid[i, j].isWalkable;
                         }
                     }
 
-                    grid = newGrid;
-                    grid.CreateOuterWalls();
+                    Grid = newGrid;
+                    Grid.CreateOuterWalls();
                     GenerateMesh();
                     GenerateColliders();
                 }
 
-                if (grid.CellSize != cellSize)
+                if (Grid.CellSize != cellSize)
                 {
-                    grid.CellSize = cellSize;
+                    Grid.CellSize = cellSize;
                     GenerateMesh();
                     GenerateColliders();
                 }
                 return;
             }
 
-            grid = new(width, height, cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
-            grid.CreateOuterWalls();
+            /*            Grid = new(width, height, cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
+                        Grid.CreateOuterWalls();
+
+                        GenerateMesh();
+                        GenerateColliders();*/
+        }
+
+        public void SetGrid(Grid<TileMapNode> grid)
+        {
+            Grid = grid;
+            Grid.CreateOuterWalls();
 
             GenerateMesh();
             GenerateColliders();
@@ -127,17 +137,17 @@ namespace Assets.Code.TileMap
         {
             if (Input.GetMouseButton(0))
             {
-                var (x, y) = grid.GetXY(UtilsClass.GetMouseWorldPosition());
-                if (grid[x, y] == null)
+                var (x, y) = Grid.GetXY(UtilsClass.GetMouseWorldPosition());
+                if (Grid[x, y] == null)
                     return;
 
-                grid[x, y].UV00 = selectedUVValue;
-                grid[x, y].UV11 = selectedUVValue;
+                Grid[x, y].UV00 = selectedUVValue;
+                Grid[x, y].UV11 = selectedUVValue;
                 GenerateMesh();
 
                 if (isColliderToggleChecked)
                 {
-                    grid[x, y].isWalkable = false; //!grid[x, y].isWalkable;
+                    Grid[x, y].isWalkable = false; //!grid[x, y].isWalkable;
                     GenerateColliders();
                 }
             }
@@ -159,26 +169,26 @@ namespace Assets.Code.TileMap
         private bool tileMapMeshUpdated;
         private bool colliderMeshUpdated;
 
-        private void GenerateMesh()
+        public void GenerateMesh()
         {
             if (mesh != null)
                 mesh.Clear();
 
-            mesh = grid.CreateMesh();
+            mesh = Grid.CreateMesh();
             tileMapMeshUpdated = true;
         }
 
-        private void GenerateColliders()
+        public void GenerateColliders()
         {
             foreach (var colliderObj in colliderHolderObjects)
                 Destroy(colliderObj);
 
-            colliderHolderObjects = grid.CreateColliders(transform);
+            colliderHolderObjects = Grid.CreateColliders(transform);
 
             if (colliderMesh != null)
                 colliderMesh.Clear();
 
-            colliderMesh = grid.CreateColliderMesh(true);
+            colliderMesh = Grid.CreateColliderMesh(true);
             colliderMeshUpdated = true;
         }
 
@@ -192,6 +202,8 @@ namespace Assets.Code.TileMap
     [CustomEditor(typeof(TileMapDrawingSystem))]
     public class TileMapDrawingSystemEditor : Editor
     {
+        private DungeonScriptableObject dungeon;
+
         public override void OnInspectorGUI()
         {
             var system = (TileMapDrawingSystem)target;
@@ -251,6 +263,62 @@ namespace Assets.Code.TileMap
             if (EditorGUI.EndChangeCheck())
                 system.CreateGrid();
             #endregion
+
+            GUILayout.Space(10);
+
+            dungeon = (DungeonScriptableObject)EditorGUILayout.ObjectField(dungeon, typeof(DungeonScriptableObject), false);
+            if (dungeon != null)
+            {
+                if (GUILayout.Button("Load"))
+                {
+                    system.height = dungeon.GridHeight;
+                    system.width = dungeon.GridWidth;
+                    system.cellSize = dungeon.GridCellSize;
+                    system.SetGrid(new(dungeon.GridWidth, dungeon.GridHeight, dungeon.GridCellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true)));
+
+                    for (int i = 0; i < system.width; i++)
+                    {
+                        for (int j = 0; j < system.height; j++)
+                        {
+                            var a = system.Grid[i, j];
+                            var b = dungeon.GridUV00s[i, j];
+
+                            system.Grid[i, j].UV00 = dungeon.GridUV00s[i, j];
+                            system.Grid[i, j].UV11 = dungeon.GridUV11s[i, j];
+                        }
+                    }
+
+                    system.GenerateMesh();
+                    system.GenerateColliders();
+                }
+
+                if (GUILayout.Button("Save"))
+                {
+                    dungeon.Name = "Test 1";
+                    dungeon.GridHeight = system.height;
+                    dungeon.GridWidth = system.width;
+                    dungeon.GridCellSize = system.cellSize;
+
+                    Vector2[,] uv00s = new Vector2[system.width, system.height];
+                    Vector2[,] uv11s = new Vector2[system.width, system.height];
+
+                    for (int i = 0; i < system.width; i++)
+                    {
+                        for (int j = 0; j < system.height; j++)
+                        {
+                            uv00s[i, j] = system.Grid[i, j].UV00;
+                            uv11s[i, j] = system.Grid[i, j].UV11;
+                        }
+                    }
+
+                    //dungeon.GridUV00s = uv00s;
+                    dungeon.GridUV11s = uv11s;
+                }
+            }
+
+            if (GUILayout.Button("Create a new grid"))
+                system.SetGrid(new(system.width, system.height, system.cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true)));
+            SaveChanges();
         }
     }
 }

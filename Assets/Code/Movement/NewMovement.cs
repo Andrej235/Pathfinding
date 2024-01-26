@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NewMovement : MonoBehaviour
+public class NewMovement : MonoBehaviour, IHostileTarget
 {
     //Basic movement
     [SerializeField] private float movementSpeed;

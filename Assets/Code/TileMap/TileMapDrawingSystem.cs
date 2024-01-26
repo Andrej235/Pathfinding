@@ -192,7 +192,7 @@ namespace Assets.Code.TileMap
     {
         public override void OnInspectorGUI()
         {
-            var system = (TileMapDrawingSystem)target;
+            var system = target as TileMapDrawingSystem;
             if (system == null)
                 return;
 
@@ -252,6 +252,7 @@ namespace Assets.Code.TileMap
 
             GUILayout.Space(10);
 
+            #region Save, load and new grid
             if (GUILayout.Button("Load"))
             {
                 try
@@ -333,7 +334,8 @@ namespace Assets.Code.TileMap
 
             if (GUILayout.Button("Create a new grid"))
                 system.SetGrid(new(system.width, system.height, system.cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true)));
-            SaveChanges();
+            SaveChanges(); 
+            #endregion
         }
     }
 }

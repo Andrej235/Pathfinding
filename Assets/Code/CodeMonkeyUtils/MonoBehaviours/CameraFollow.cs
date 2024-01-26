@@ -80,7 +80,7 @@ namespace CodeMonkey.MonoBehaviours {
             float cameraMoveSpeed = 5f;
 
             if (distance > 0) {
-                Vector3 newCameraPosition = transform.position + cameraMoveDir * distance * cameraMoveSpeed * Time.deltaTime;
+                Vector3 newCameraPosition = transform.position + cameraMoveSpeed * distance * Time.deltaTime * cameraMoveDir;
 
                 float distanceAfterMoving = Vector3.Distance(newCameraPosition, cameraFollowPosition);
 

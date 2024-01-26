@@ -9,6 +9,6 @@ public class TileMapNode : PathNode
         UV11 = uv11;
     }
 
-    public Vector2 UV00 { get; }
-    public Vector2 UV11 { get; }
+    public Vector2 UV00 { get; set; }
+    public Vector2 UV11 { get; set; }
 }

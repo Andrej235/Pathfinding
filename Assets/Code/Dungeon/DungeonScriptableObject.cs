@@ -1,15 +1,22 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.TerrainTools;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 [CreateAssetMenu(fileName = "Dungeon", menuName = "ScriptableObjects/Dungeon")]
+[Serializable]
 public class DungeonScriptableObject : ScriptableObject
 {
-    public string Name;
-    public List<Room> PossibleRooms;
+    public string Name { get; set; }
+    public List<Room> PossibleRooms { get; set; }
+
+    public int GridWidth;
+    public int GridHeight;
+    public float GridCellSize;
+
+    public Vector2[,] GridUV00s;
+    public Vector2[,] GridUV11s;
+    public bool[,] GridIsWalkables;
 }
 
 [CustomEditor(typeof(DungeonScriptableObject))]
@@ -39,6 +46,11 @@ public class DungeonScriptableObjectEditor : Editor
         if (plusClicked)
         {
             dungeon.PossibleRooms.Add(new());
+        }
+
+        if (GUILayout.Button("Test"))
+        {
+            dungeon.GridUV00s = new Vector2[10, 10];
         }
     }
 }

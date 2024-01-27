@@ -1,13 +1,10 @@
 ﻿using Assets.Code.Dungeon.DTOs;
-using Assets.Code.Grid;
 using Assets.Code.Utility;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using Directory = System.IO.Directory;
 using File = System.IO.File;
 
 namespace Assets.Code.TileMap
@@ -17,16 +14,49 @@ namespace Assets.Code.TileMap
     {
         private RoomDTO selectedRoom;
         private TileMapDrawingSystem tileMapDrawingSystem;
+        private int selectedRoomIndex = -1;
 
         public override void OnInspectorGUI()
         {
+            if (!Application.isPlaying)
+            {
+                GUILayout.Label("Unable to edit dungeons in edit mode");
+                return;
+            }
+
             if (target is not DungeonCreationSystem system)
                 return;
 
-            tileMapDrawingSystem = (TileMapDrawingSystem)EditorGUILayout.ObjectField(tileMapDrawingSystem, typeof(TileMapDrawingSystem), true);
-
             if (tileMapDrawingSystem == null)
+            {
+                foreach (var dungeonName in DungeonCreationSystem.GetDungeonNames())
+                {
+                    if (GUILayout.Button(dungeonName))
+                    {
+                        try
+                        {
+                            string dungeonFileName = DungeonCreationSystem.DungeonsJSONFolderPath + DungeonCreationSystem.ConvertNameToFileName(dungeonName);
+                            string dungeonJsonFileContent = File.ReadAllText(dungeonFileName);
+                            system.dto = JsonUtility.FromJson<DungeonDTO>(dungeonJsonFileContent) ?? new("", 0, new());
+
+                            system.dto.Name ??= "My dungeon";
+                            system.dto.PossibleRooms ??= new();
+
+                            system.InitializeTileMapDrawingSystem();
+                            tileMapDrawingSystem = system.TileMapDrawingSystem;
+
+                            //TODO: Set baseMaterial equal to the saved material (by id??)
+                            //baseMaterial = tileMapDrawingSystem.BaseMaterial;
+                        }
+                        catch (Exception ex)
+                        {
+                            ex.LogError();
+                        }
+                    }
+                }
+
                 return;
+            }
 
             #region Materials
             GUILayout.BeginHorizontal();
@@ -36,7 +66,7 @@ namespace Assets.Code.TileMap
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            tileMapDrawingSystem.baseMaterial = (Material)EditorGUILayout.ObjectField(tileMapDrawingSystem.baseMaterial, typeof(Material), false, GUILayout.Width(150));
+            tileMapDrawingSystem.BaseMaterial = (Material)EditorGUILayout.ObjectField(tileMapDrawingSystem.BaseMaterial, typeof(Material), false, GUILayout.Width(150));
             GUILayout.FlexibleSpace();
             tileMapDrawingSystem.colliderDisplayMaterial = (Material)EditorGUILayout.ObjectField(tileMapDrawingSystem.colliderDisplayMaterial, typeof(Material), false, GUILayout.Width(150));
             GUILayout.EndHorizontal();
@@ -60,60 +90,94 @@ namespace Assets.Code.TileMap
 
             GUILayout.Space(10);
 
+            #region Dungeon
+            system.dto.Name = EditorGUILayout.TextField("Dungeon name: ", system.dto.Name);
+
+            GUILayout.Label("Rooms: ");
+
+            for (int i = 0; i < system.dto.PossibleRooms.Count; i++)
+            {
+                RoomDTO room = system.dto.PossibleRooms[i];
+
+                GUILayout.BeginHorizontal();
+                if (i == selectedRoomIndex)
+                    GUILayout.Label("---> ", GUILayout.Width(33));
+
+                room.Type = (RoomDTO.RoomType)EditorGUILayout.EnumFlagsField(room.Type);
+
+                if (i != selectedRoomIndex)
+                {
+                    if (GUILayout.Button("Select"))
+                    {
+                        if (selectedRoom != null)
+                            selectedRoom.TileMap = tileMapDrawingSystem.GetDTO();
+
+                        selectedRoomIndex = i;
+                        room.TileMap ??= new(0, 0, 0, new List<Vector2>(), new(), new());
+                        selectedRoom = room;
+
+                        tileMapDrawingSystem.LoadDTO(room.TileMap);
+                    }
+                }
+
+                if (GUILayout.Button("-", GUILayout.Width(33)))
+                {
+                    if (i == selectedRoomIndex)
+                    {
+                        selectedRoomIndex = -1;
+                        selectedRoom = null;
+                        //TODO: Somehow hide the tilemap
+                    }
+                    else if (i < selectedRoomIndex)
+                        selectedRoomIndex--;
+
+                    system.dto.PossibleRooms.Remove(room);
+                }
+
+                GUILayout.EndHorizontal();
+            }
+
+            if (GUILayout.Button("+"))
+                system.dto.PossibleRooms.Add(new RoomDTO());
+
+            #endregion
+
+            GUILayout.Space(10);
+
             #region Grid
             EditorGUI.BeginChangeCheck();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Width: ");
-            tileMapDrawingSystem.width = EditorGUILayout.IntSlider(tileMapDrawingSystem.width, 0, 100);
+            tileMapDrawingSystem.Width = EditorGUILayout.IntSlider(tileMapDrawingSystem.Width, 0, 100);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Height: ");
-            tileMapDrawingSystem.height = EditorGUILayout.IntSlider(tileMapDrawingSystem.height, 0, 100);
+            tileMapDrawingSystem.Height = EditorGUILayout.IntSlider(tileMapDrawingSystem.Height, 0, 100);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Cell size: ");
-            tileMapDrawingSystem.cellSize = EditorGUILayout.Slider(tileMapDrawingSystem.cellSize, 0, 15);
+            tileMapDrawingSystem.CellSize = EditorGUILayout.Slider(tileMapDrawingSystem.CellSize, 0, 15);
             GUILayout.EndHorizontal();
 
             if (EditorGUI.EndChangeCheck())
-                tileMapDrawingSystem.CreateGrid();
+                tileMapDrawingSystem.RecreateGrid();
             #endregion
 
             GUILayout.Space(10);
+
+            if (string.IsNullOrWhiteSpace(system.dto.Name))
+                return;
 
             #region Save, load and new grid
             if (GUILayout.Button("Load"))
             {
                 try
                 {
-                    string gridJsonFile = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), @"Assets\JSONFiles\asdasd.json"));
-                    TileMapGridDTO gridData = JsonUtility.FromJson<TileMapGridDTO>(gridJsonFile);
-
-                    tileMapDrawingSystem.width = gridData.GridWidth;
-                    tileMapDrawingSystem.height = gridData.GridHeight;
-                    tileMapDrawingSystem.cellSize = gridData.GridCellSize;
-
-                    tileMapDrawingSystem.CreateGrid();
-
-                    Grid<TileMapNode> Grid = new(tileMapDrawingSystem.width, tileMapDrawingSystem.height, tileMapDrawingSystem.cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
-                    tileMapDrawingSystem.SetGrid(Grid);
-
-                    for (int i = 0; i < tileMapDrawingSystem.width; i++)
-                    {
-                        for (int j = 0; j < tileMapDrawingSystem.height; j++)
-                        {
-                            tileMapDrawingSystem.Grid[i, j].UV00 = gridData.GridUV00s[i * tileMapDrawingSystem.height + j];
-                            tileMapDrawingSystem.Grid[i, j].UV11 = gridData.GridUV11s[i * tileMapDrawingSystem.height + j];
-
-                            tileMapDrawingSystem.Grid[i, j].isWalkable = gridData.GridIsWalkables[i * tileMapDrawingSystem.height + j];
-                        }
-                    }
-
-                    tileMapDrawingSystem.GenerateMesh();
-                    tileMapDrawingSystem.GenerateColliders();
+                    string gridJsonFile = File.ReadAllText(DungeonCreationSystem.DungeonsJSONFolderPath);
+                    system.dto = JsonUtility.FromJson<DungeonDTO>(gridJsonFile);
                 }
                 catch (Exception ex)
                 {
@@ -125,37 +189,17 @@ namespace Assets.Code.TileMap
             {
                 try
                 {
-                    List<List<Vector2>> uv00s = new();
-                    List<List<Vector2>> uv11s = new();
+                    var filePath = DungeonCreationSystem.DungeonsJSONFolderPath + $"\\DungeonPreset_{system.dto.Name}.json";
 
-                    List<List<bool>> walkable = new();
+                    if (selectedRoom != null)
+                        selectedRoom.TileMap = tileMapDrawingSystem.GetDTO();
 
+                    string gridJsonFile = JsonUtility.ToJson(system.dto);
 
-                    for (int i = 0; i < tileMapDrawingSystem.width; i++)
-                    {
-                        uv00s.Add(new());
-                        uv11s.Add(new());
-                        walkable.Add(new());
+                    /*                    if (!File.Exists(filePath))
+                                            File.Create(filePath);*/
 
-                        for (int j = 0; j < tileMapDrawingSystem.height; j++)
-                        {
-                            uv00s[i].Add(tileMapDrawingSystem.Grid[i, j].UV00);
-                            uv11s[i].Add(tileMapDrawingSystem.Grid[i, j].UV11);
-
-                            walkable[i].Add(tileMapDrawingSystem.Grid[i, j].isWalkable);
-                        }
-                    }
-
-                    TileMapGridDTO tileMapGridDTO = new(
-                        gridWidth: tileMapDrawingSystem.width,
-                        gridHeight: tileMapDrawingSystem.height,
-                        gridCellSize: tileMapDrawingSystem.cellSize,
-                        gridUV00s: uv00s,
-                        gridUV11s: uv11s,
-                        gridIsWalkables: walkable);
-
-                    string gridJsonFile = JsonUtility.ToJson(tileMapGridDTO);
-                    File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), @"Assets\JSONFiles\asdasd.json"), gridJsonFile);
+                    File.WriteAllText(filePath, gridJsonFile);
                 }
                 catch (Exception ex)
                 {
@@ -163,8 +207,6 @@ namespace Assets.Code.TileMap
                 }
             }
 
-            if (GUILayout.Button("Create a new grid"))
-                tileMapDrawingSystem.SetGrid(new(tileMapDrawingSystem.width, tileMapDrawingSystem.height, tileMapDrawingSystem.cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true)));
             SaveChanges();
             #endregion
         }

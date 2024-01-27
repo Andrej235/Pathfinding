@@ -153,13 +153,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f2bb31b616ef774abecdc13cc8d7f93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseMaterial: {fileID: 2100000, guid: 036f535e2c1504d499903251ea08df54, type: 2}
   colliderDisplayMaterial: {fileID: 2100000, guid: 81595e89e72ab094cb732e164c73aaeb, type: 2}
   baseImage: {fileID: 755884829}
   colliderToggle: {fileID: 1431996657}
-  width: 25
-  height: 26
-  cellSize: 5
 --- !u!4 &231112895
 Transform:
   m_ObjectHideFlags: 0
@@ -187,6 +183,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2066366cb08d74987fbfc1b6a5a775, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dto:
+    Name: 
+    MaterialId: 0
+    PossibleRooms: []
 --- !u!1 &709124385
 GameObject:
   m_ObjectHideFlags: 0

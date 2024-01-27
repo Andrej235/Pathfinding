@@ -1,9 +1,20 @@
 ﻿using Assets.Code.TileMap;
+using System;
 
 namespace Assets.Code.Dungeon.DTOs
 {
+    [Serializable]
     public record RoomDTO
     {
+        public RoomDTO(RoomType type, TileMapGridDTO tileMap)
+        {
+            Type = type;
+            TileMap = tileMap;
+        }
+
+        public RoomDTO() { }
+
+        [Serializable]
         public enum RoomType
         {
             Enemy = 1,
@@ -13,7 +24,7 @@ namespace Assets.Code.Dungeon.DTOs
             Boss = 16,
         }
 
-        public RoomType Type { get; }
-        public TileMapGridDTO TileMap { get; }
+        public RoomType Type;
+        public TileMapGridDTO TileMap;
     }
 }

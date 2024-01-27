@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Assets.Code.Dungeon.DTOs
 {
+    [Serializable]
     public record DungeonDTO
     {
         public DungeonDTO(string name, int materialId, List<RoomDTO> possibleRooms)
@@ -11,8 +13,8 @@ namespace Assets.Code.Dungeon.DTOs
             PossibleRooms = possibleRooms;
         }
 
-        public string Name { get; set; }
-        public int MaterialId { get; set; }
-        public List<RoomDTO> PossibleRooms { get; }
+        public string Name;
+        public int MaterialId;
+        public List<RoomDTO> PossibleRooms;
     }
 }

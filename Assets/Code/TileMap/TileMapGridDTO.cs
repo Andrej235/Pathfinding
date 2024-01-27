@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Code.TileMap
@@ -10,18 +12,21 @@ namespace Assets.Code.TileMap
         public int GridHeight;
         public float GridCellSize;
 
-        public Vector2[,] GridUV00s;
-        public Vector2[,] GridUV11s;
-        public bool[,] GridIsWalkables;
+        [SerializeField] public List<Vector2> GridUV00s;
+        [SerializeField] public List<Vector2> GridUV11s;
+        [SerializeField] public List<bool> GridIsWalkables;
 
-        public TileMapGridDTO(int gridWidth, int gridHeight, float gridCellSize, Vector2[,] gridUV00s, Vector2[,] gridUV11s, bool[,] gridIsWalkables)
+        public TileMapGridDTO(int gridWidth, int gridHeight, float gridCellSize, List<List<Vector2>> gridUV00s, List<List<Vector2>> gridUV11s, List<List<bool>> gridIsWalkables)
+            : this(gridWidth, gridHeight, gridCellSize, gridUV00s.SelectMany(x => x).ToList(), gridUV11s.SelectMany(x => x).ToList(), gridIsWalkables.SelectMany(x => x).ToList()) { }
+
+        public TileMapGridDTO(int gridWidth, int gridHeight, float gridCellSize, List<Vector2> flattenedUV00s, List<Vector2> flattenedUV11s, List<bool> flattenedIsWalkables)
         {
             GridWidth = gridWidth;
             GridHeight = gridHeight;
             GridCellSize = gridCellSize;
-            GridUV00s = gridUV00s;
-            GridUV11s = gridUV11s;
-            GridIsWalkables = gridIsWalkables;
+            GridUV00s = flattenedUV00s;
+            GridUV11s = flattenedUV11s;
+            GridIsWalkables = flattenedIsWalkables;
         }
     }
 }

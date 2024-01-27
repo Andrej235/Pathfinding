@@ -2,25 +2,38 @@
 using CodeMonkey.Utils;
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using static Unity.Burst.Intrinsics.Arm;
+using Input = UnityEngine.Input;
 
 namespace Assets.Code.TileMap
 {
     public class TileMapDrawingSystem : MonoBehaviour
     {
-        public Material baseMaterial;
+        public Material BaseMaterial
+        {
+            get => baseMaterial;
+            set
+            {
+                if (BaseMaterial == value)
+                    return;
+
+                baseMaterial = value;
+                IntializeTileMapButtons();
+                tileMapMeshRenderer.material = BaseMaterial;
+            }
+        }
+        private Material baseMaterial;
+
         public Material colliderDisplayMaterial;
         public GameObject baseImage;
         public Toggle colliderToggle;
-        public int width;
-        public int height;
-        public float cellSize;
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public float CellSize { get; set; }
 
         private MeshFilter tileMapMeshFilter;
+        private MeshRenderer tileMapMeshRenderer;
         private MeshFilter colliderMeshFilter;
 
         private Mesh mesh;
@@ -29,13 +42,12 @@ namespace Assets.Code.TileMap
         public Grid<TileMapNode> Grid { get; private set; }
         private Vector2 selectedUVValue = new();
         private bool isColliderToggleChecked;
-        private bool areMeshesLoaded = false;
 
         private void Start()
         {
             GameObject tileMapMeshFilterHolder = new() { name = "TileMapMeshFilterHolder" };
-            var tileMapMeshRenderer = tileMapMeshFilterHolder.AddComponent<MeshRenderer>();
-            tileMapMeshRenderer.material = baseMaterial;
+            tileMapMeshRenderer = tileMapMeshFilterHolder.AddComponent<MeshRenderer>();
+            tileMapMeshRenderer.material = BaseMaterial;
             tileMapMeshFilter = tileMapMeshFilterHolder.AddComponent<MeshFilter>();
 
             GameObject colliderMeshFilterHolder = new() { name = "ColliderMeshFilterHolder" };
@@ -43,60 +55,45 @@ namespace Assets.Code.TileMap
             var colliderMeshRenderer = colliderMeshFilterHolder.AddComponent<MeshRenderer>();
             colliderMeshRenderer.material = colliderDisplayMaterial;
             colliderMeshFilter = colliderMeshFilterHolder.AddComponent<MeshFilter>();
+            colliderMeshFilter.gameObject.SetActive(false);
 
             colliderToggle.onValueChanged.AddListener(ColliderToggleValueChanged);
-
-            areMeshesLoaded = true;
-            CreateGrid();
-            IntializeTileMapButtons();
         }
 
-        private void OnValidate()
+        public void RecreateGrid()
         {
-            if (Application.isPlaying && areMeshesLoaded)
-                CreateGrid();
-        }
-
-        public void CreateGrid()
-        {
-            if (Grid != null)
-            {
-                if (Grid.Height != height || Grid.Width != width)
-                {
-                    var newGrid = new Grid<TileMapNode>(width, height, cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
-                    var minWidth = Math.Min(Grid.Width, width);
-                    var minHeight = Math.Min(Grid.Height, height);
-
-                    for (int i = 1; i < minWidth - 1; i++)
-                    {
-                        for (int j = 1; j < minHeight - 1; j++)
-                        {
-                            newGrid[i, j].UV00 = Grid[i, j].UV00;
-                            newGrid[i, j].UV11 = Grid[i, j].UV11;
-                            newGrid[i, j].isWalkable = Grid[i, j].isWalkable;
-                        }
-                    }
-
-                    Grid = newGrid;
-                    Grid.CreateOuterWalls();
-                    GenerateMesh();
-                    GenerateColliders();
-                }
-
-                if (Grid.CellSize != cellSize)
-                {
-                    Grid.CellSize = cellSize;
-                    GenerateMesh();
-                    GenerateColliders();
-                }
+            if (Grid == null)
                 return;
+
+            if (Grid.Height != Height || Grid.Width != Width)
+            {
+                var newGrid = new Grid<TileMapNode>(Width, Height, CellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
+                var minWidth = Math.Min(Grid.Width, Width);
+                var minHeight = Math.Min(Grid.Height, Height);
+
+                for (int i = 1; i < minWidth - 1; i++)
+                {
+                    for (int j = 1; j < minHeight - 1; j++)
+                    {
+                        newGrid[i, j].UV00 = Grid[i, j].UV00;
+                        newGrid[i, j].UV11 = Grid[i, j].UV11;
+                        newGrid[i, j].isWalkable = Grid[i, j].isWalkable;
+                    }
+                }
+
+                Grid = newGrid;
+                Grid.CreateOuterWalls();
+                GenerateMesh();
+                GenerateColliders();
             }
 
-            /*            Grid = new(width, height, cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
-                        Grid.CreateOuterWalls();
-
-                        GenerateMesh();
-                        GenerateColliders();*/
+            if (Grid.CellSize != CellSize)
+            {
+                Grid.CellSize = CellSize;
+                GenerateMesh();
+                GenerateColliders();
+            }
+            return;
         }
 
         public void SetGrid(Grid<TileMapNode> grid)
@@ -108,18 +105,27 @@ namespace Assets.Code.TileMap
             GenerateColliders();
         }
 
+        private readonly HashSet<GameObject> tileMapPaletteObjects = new();
         private void IntializeTileMapButtons()
         {
-            int fullTextureWidth = baseMaterial.mainTexture.width;
+            if (BaseMaterial == null)
+                return;
+
+            baseImage.SetActive(true);
+            foreach (var x in tileMapPaletteObjects)
+                Destroy(x);
+
+            int fullTextureWidth = BaseMaterial.mainTexture.width;
             int tiles = fullTextureWidth / 64;
             Vector2 tileTextureScale = new(1f / (tiles + 1), 1);
 
             for (int i = 0; i < tiles; i++)
             {
                 var newImage = Instantiate(baseImage, new(), Quaternion.identity, baseImage.transform.parent);
+                tileMapPaletteObjects.Add(newImage);
                 Vector2 offset = new(i * (1f / tiles) + .01f, 0);
 
-                var newMaterial = new Material(baseMaterial)
+                var newMaterial = new Material(BaseMaterial)
                 {
                     mainTextureScale = tileTextureScale,
                     mainTextureOffset = offset
@@ -129,13 +135,12 @@ namespace Assets.Code.TileMap
                 newImage.GetComponent<Image>().material = newMaterial;
                 newImage.GetComponent<Button>().onClick.AddListener(() => selectedUVValue = offset);
             }
-
             baseImage.SetActive(false);
         }
 
         private void Update()
         {
-            if (Input.GetMouseButton(0))
+            if (Grid != null && Input.GetMouseButton(0))
             {
                 var (x, y) = Grid.GetXY(UtilsClass.GetMouseWorldPosition());
                 if (Grid[x, y] == null)
@@ -147,7 +152,7 @@ namespace Assets.Code.TileMap
 
                 if (isColliderToggleChecked)
                 {
-                    Grid[x, y].isWalkable = false; //!grid[x, y].isWalkable;
+                    Grid[x, y].isWalkable = false;
                     GenerateColliders();
                 }
             }
@@ -197,128 +202,68 @@ namespace Assets.Code.TileMap
             isColliderToggleChecked = isChecked;
             colliderMeshFilter.gameObject.SetActive(isColliderToggleChecked);
         }
-    }
 
-    [CustomEditor(typeof(TileMapDrawingSystem))]
-    public class TileMapDrawingSystemEditor : Editor
-    {
-        private DungeonScriptableObject dungeon;
-
-        public override void OnInspectorGUI()
+        public void LoadDTO(TileMapGridDTO tileMapGridDTO)
         {
-            var system = (TileMapDrawingSystem)target;
-            if (system == null)
-                return;
+            Width = tileMapGridDTO.GridWidth;
+            Height = tileMapGridDTO.GridHeight;
+            CellSize = tileMapGridDTO.GridCellSize;
 
-            #region Materials
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Base", GUILayout.Width(150));
-            GUILayout.FlexibleSpace();
-            GUILayout.Label("Collider Display", GUILayout.Width(150));
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            system.baseMaterial = (Material)EditorGUILayout.ObjectField(system.baseMaterial, typeof(Material), false, GUILayout.Width(150));
-            GUILayout.FlexibleSpace();
-            system.colliderDisplayMaterial = (Material)EditorGUILayout.ObjectField(system.colliderDisplayMaterial, typeof(Material), false, GUILayout.Width(150));
-            GUILayout.EndHorizontal();
-            #endregion
-
-            GUILayout.Space(10);
-
-            #region Image and Toggle
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Base image", GUILayout.Width(150));
-            GUILayout.FlexibleSpace();
-            GUILayout.Label("Collider toggle", GUILayout.Width(150));
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            system.baseImage = (GameObject)EditorGUILayout.ObjectField(system.baseImage, typeof(GameObject), false, GUILayout.Width(150));
-            GUILayout.FlexibleSpace();
-            system.colliderToggle = (Toggle)EditorGUILayout.ObjectField(system.colliderToggle, typeof(Toggle), false, GUILayout.Width(150));
-            GUILayout.EndHorizontal();
-            #endregion
-
-            GUILayout.Space(10);
-
-            #region Grid
-            EditorGUI.BeginChangeCheck();
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Width: ");
-            system.width = EditorGUILayout.IntSlider(system.width, 0, 100);
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Height: ");
-            system.height = EditorGUILayout.IntSlider(system.height, 0, 100);
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Cell size: ");
-            system.cellSize = EditorGUILayout.Slider(system.cellSize, 0, 15);
-            GUILayout.EndHorizontal();
-
-            if (EditorGUI.EndChangeCheck())
-                system.CreateGrid();
-            #endregion
-
-            GUILayout.Space(10);
-
-            dungeon = (DungeonScriptableObject)EditorGUILayout.ObjectField(dungeon, typeof(DungeonScriptableObject), false);
-            if (dungeon != null)
+            Grid = new(Width, Height, CellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
+            for (int i = 0; i < Width; i++)
             {
-                if (GUILayout.Button("Load"))
+                for (int j = 0; j < Height; j++)
                 {
-                    system.height = dungeon.GridHeight;
-                    system.width = dungeon.GridWidth;
-                    system.cellSize = dungeon.GridCellSize;
-                    system.SetGrid(new(dungeon.GridWidth, dungeon.GridHeight, dungeon.GridCellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true)));
+                    Grid[i, j].UV00 = tileMapGridDTO.GridUV00s[i * Height + j];
+                    Grid[i, j].UV11 = tileMapGridDTO.GridUV11s[i * Height + j];
 
-                    for (int i = 0; i < system.width; i++)
-                    {
-                        for (int j = 0; j < system.height; j++)
-                        {
-                            var a = system.Grid[i, j];
-                            var b = dungeon.GridUV00s[i, j];
-
-                            system.Grid[i, j].UV00 = dungeon.GridUV00s[i, j];
-                            system.Grid[i, j].UV11 = dungeon.GridUV11s[i, j];
-                        }
-                    }
-
-                    system.GenerateMesh();
-                    system.GenerateColliders();
-                }
-
-                if (GUILayout.Button("Save"))
-                {
-                    dungeon.Name = "Test 1";
-                    dungeon.GridHeight = system.height;
-                    dungeon.GridWidth = system.width;
-                    dungeon.GridCellSize = system.cellSize;
-
-                    Vector2[,] uv00s = new Vector2[system.width, system.height];
-                    Vector2[,] uv11s = new Vector2[system.width, system.height];
-
-                    for (int i = 0; i < system.width; i++)
-                    {
-                        for (int j = 0; j < system.height; j++)
-                        {
-                            uv00s[i, j] = system.Grid[i, j].UV00;
-                            uv11s[i, j] = system.Grid[i, j].UV11;
-                        }
-                    }
-
-                    //dungeon.GridUV00s = uv00s;
-                    dungeon.GridUV11s = uv11s;
+                    Grid[i, j].isWalkable = tileMapGridDTO.GridIsWalkables[i * Height + j];
                 }
             }
 
-            if (GUILayout.Button("Create a new grid"))
-                system.SetGrid(new(system.width, system.height, system.cellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true)));
-            SaveChanges();
+            GenerateMesh();
+            GenerateColliders();
+        }
+
+        public void UnloadMesh()
+        {
+            Width = 0;
+            Height = 0;
+            CellSize = 0;
+            Grid = new(Width, Height, CellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
+            GenerateMesh();
+            GenerateColliders();
+        }
+
+        public TileMapGridDTO GetDTO()
+        {
+            if (Grid is null)
+                return null;
+
+            List<List<Vector2>> uv00s = new();
+            List<List<Vector2>> uv11s = new();
+            List<List<bool>> walkable = new();
+
+            for (int i = 0; i < Width; i++)
+            {
+                uv00s.Add(new());
+                uv11s.Add(new());
+                walkable.Add(new());
+
+                for (int j = 0; j < Height; j++)
+                {
+                    uv00s[i].Add(Grid[i, j].UV00);
+                    uv11s[i].Add(Grid[i, j].UV11);
+                    walkable[i].Add(Grid[i, j].isWalkable);
+                }
+            }
+
+            return new(gridWidth: Width,
+                       gridHeight: Height,
+                       gridCellSize: CellSize,
+                       gridUV00s: uv00s,
+                       gridUV11s: uv11s,
+                       gridIsWalkables: walkable);
         }
     }
 }

@@ -55,6 +55,7 @@ namespace Assets.Code.TileMap
             var colliderMeshRenderer = colliderMeshFilterHolder.AddComponent<MeshRenderer>();
             colliderMeshRenderer.material = colliderDisplayMaterial;
             colliderMeshFilter = colliderMeshFilterHolder.AddComponent<MeshFilter>();
+            colliderMeshFilter.gameObject.SetActive(false);
 
             colliderToggle.onValueChanged.AddListener(ColliderToggleValueChanged);
         }
@@ -139,7 +140,7 @@ namespace Assets.Code.TileMap
 
         private void Update()
         {
-            if (Input.GetMouseButton(0))
+            if (Grid != null && Input.GetMouseButton(0))
             {
                 var (x, y) = Grid.GetXY(UtilsClass.GetMouseWorldPosition());
                 if (Grid[x, y] == null)
@@ -220,6 +221,16 @@ namespace Assets.Code.TileMap
                 }
             }
 
+            GenerateMesh();
+            GenerateColliders();
+        }
+
+        public void UnloadMesh()
+        {
+            Width = 0;
+            Height = 0;
+            CellSize = 0;
+            Grid = new(Width, Height, CellSize, (g, x, y) => new(x, y, Vector2.zero, Vector2.zero, true));
             GenerateMesh();
             GenerateColliders();
         }

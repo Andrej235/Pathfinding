@@ -3,11 +3,14 @@ using UnityEngine;
 
 public static class WallGenerator
 {
-    public static void CreateWalls(HashSet<Vector2Int> floorPositions, TileMapVisualizer tileMapVisualizer)
+    public static HashSet<Vector2Int> CreateWalls(HashSet<Vector2Int> floorPositions, TileMapVisualizer tileMapVisualizer)
     {
-        var wallPositions = FindWallsInDirections(floorPositions, Directions.cardinalDirectionsList);
+        var wallPositions = FindWallsInDirections(floorPositions, Directions.directionsList);
+
         foreach (var position in wallPositions)
             tileMapVisualizer.PainSingleBasicWall(position);
+
+        return wallPositions;
     }
 
     private static HashSet<Vector2Int> FindWallsInDirections(HashSet<Vector2Int> floorPositions, List<Vector2Int> directions)

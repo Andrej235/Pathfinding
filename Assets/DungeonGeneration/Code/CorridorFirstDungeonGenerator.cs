@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
 {
@@ -32,13 +29,14 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
 
         for (int i = 0; i < corridors.Count; i++)
         {
-            corridors[i] = IncreaseCorridorSizeByOne(corridors[i]);
-            //corridors[i] = IncreaseCorridorSizeByThree(corridors[i]);
+            //corridors[i] = IncreaseCorridorSizeByOne(corridors[i]);
+            corridors[i] = IncreaseCorridorSizeByThree(corridors[i]);
             floorPositions.UnionWith(corridors[i]);
         }
 
+        var wallPositions = WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
+        floorPositions.UnionWith(wallPositions);
         tileMapVisualizer.PaintFloorTiles(floorPositions);
-        WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
     }
 
     private List<Vector2Int> IncreaseCorridorSizeByThree(List<Vector2Int> corridor)

@@ -11,6 +11,18 @@ internal static class Directions
         Vector2Int.left,
     };
 
+    public readonly static List<Vector2Int> directionsList = new()
+    {
+        Vector2Int.up,
+        Vector2Int.right,
+        Vector2Int.down,
+        Vector2Int.left,
+        new (-1 , 1),
+        new (1 , 1),
+        new (1 , -1),
+        new (-1 , -1),
+    };
+
     /// <summary>
     /// Generates a random cardinal direction every time it is read
     /// </summary>

@@ -9,10 +9,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
     [SerializeField] private int corridorCount = 5;
     [SerializeField][Range(.1f, 1f)] private float roomPercent = .8f;
 
-    protected override void RunProceduralGeneration()
-    {
-        CorridorFirstGeneration();
-    }
+    protected override void RunProceduralGeneration() => CorridorFirstGeneration();
 
     private void CorridorFirstGeneration()
     {
@@ -20,38 +17,30 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         HashSet<Vector2Int> potentialRoomPositions = new();
 
         List<List<Vector2Int>> corridors = CreateCorridors(floorPositions, potentialRoomPositions);
-
         HashSet<Vector2Int> roomPositions = CreateRooms(potentialRoomPositions);
 
-        List<Vector2Int> deadEnds = FindAllDeadEnds(floorPositions);
-        CreateRoomsAtDeadEnd(deadEnds, roomPositions);
+        List<Vector2Int> deadEnds = GetDeadEnds(floorPositions);
+        CreateRoomsAtDeadEnds(deadEnds, roomPositions);
         floorPositions.UnionWith(roomPositions);
 
-        for (int i = 0; i < corridors.Count; i++)
+        corridors.Aggregate(floorPositions, (floorPositions, corridor) =>
         {
-            //corridors[i] = IncreaseCorridorSizeByOne(corridors[i]);
-            corridors[i] = IncreaseCorridorSizeByThree(corridors[i]);
-            floorPositions.UnionWith(corridors[i]);
-        }
+            floorPositions.UnionWith(IncreaseCorridorSizeToThree(corridor));
+            return floorPositions;
+        });
+
+        /*        for (int i = 0; i < corridors.Count; i++)
+                {
+                    corridors[i] = IncreaseCorridorSizeToThree(corridors[i]);
+                    floorPositions.UnionWith(corridors[i]);
+                }*/
 
         var wallPositions = WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
         floorPositions.UnionWith(wallPositions);
         tileMapVisualizer.PaintFloorTiles(floorPositions);
     }
 
-    private List<Vector2Int> IncreaseCorridorSizeByThree(List<Vector2Int> corridor)
-    {
-        List<Vector2Int> newCorridor = new();
-        for (int i = 1; i < corridor.Count; i++)
-        {
-            for (int x = -1; x < 2; x++)
-                for (int y = -1; y < 2; y++)
-                    newCorridor.Add(corridor[i - 1] + new Vector2Int(x, y));
-        }
-        return newCorridor;
-    }
-
-    private List<Vector2Int> IncreaseCorridorSizeByOne(List<Vector2Int> corridor)
+    protected List<Vector2Int> IncreaseCorridorSizeToTwo(List<Vector2Int> corridor)
     {
         List<Vector2Int> newCorridor = new();
         Vector2Int previousDirection = Vector2Int.zero;
@@ -79,6 +68,18 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         return newCorridor;
     }
 
+    protected List<Vector2Int> IncreaseCorridorSizeToThree(List<Vector2Int> corridor)
+    {
+        List<Vector2Int> newCorridor = new();
+        for (int i = 1; i < corridor.Count; i++)
+        {
+            for (int x = -1; x < 2; x++)
+                for (int y = -1; y < 2; y++)
+                    newCorridor.Add(corridor[i - 1] + new Vector2Int(x, y));
+        }
+        return newCorridor;
+    }
+
     private Vector2Int GetDirection90From(Vector2Int directionFromCell)
     {
         if (directionFromCell == Vector2Int.up)
@@ -96,7 +97,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         return Vector2Int.zero;
     }
 
-    private void CreateRoomsAtDeadEnd(List<Vector2Int> deadEnds, HashSet<Vector2Int> roomFloorPositions)
+    private void CreateRoomsAtDeadEnds(List<Vector2Int> deadEnds, HashSet<Vector2Int> roomFloorPositions)
     {
         foreach (var position in deadEnds)
         {
@@ -108,7 +109,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         }
     }
 
-    private List<Vector2Int> FindAllDeadEnds(HashSet<Vector2Int> floorPositions)
+    private List<Vector2Int> GetDeadEnds(HashSet<Vector2Int> floorPositions)
     {
         List<Vector2Int> deadEnds = new();
         foreach (var position in floorPositions)

@@ -15,4 +15,12 @@ MonoBehaviour:
   Items:
   - id: 1
     item: {fileID: 11400000, guid: 680adf630b1693644bf78af2b345e290, type: 2}
-  id: 1
+  - id: 1
+    item: {fileID: 11400000, guid: 17d45c0839105c44d8c95d774bc976c5, type: 2}
+  Recipes:
+  - id: 1
+    recipe: {fileID: 11400000, guid: 297cfddeef370ca46aa55b30f9f4c4cd, type: 2}
+  highestItemId: 1
+  highestRecipeId: 1
+  editor_ShowItems: 1
+  editor_ShowRecipes: 1

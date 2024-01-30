@@ -8,7 +8,7 @@ namespace Assets.Code.Inventory
         public IWeapon Weapon { get; protected set; }
         public IAbility RightAbility { get; protected set; }
         public IAbility LeftAbility { get; protected set; }
-        public List<IItem> Storage { get; protected set; }
+        public List<StorageSlot> Storage { get; protected set; }
         public List<IAccessory> Accessories { get; protected set; }
     }
 }

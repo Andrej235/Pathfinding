@@ -1,13 +1,15 @@
-using System;
+using Assets.Code.Items.ItemManager;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "ItemManager", menuName = "ScriptableObjects/ItemManager")]
 public class ItemManagerSO : ScriptableObject
 {
     public List<ItemSOIdPair> Items = new();
+    public List<RecipeSOIdPair> Recipes = new();
 
     private static ItemManagerSO instance;
     public static ItemManagerSO Instance
@@ -21,75 +23,102 @@ public class ItemManagerSO : ScriptableObject
         }
     }
 
-    public int id;
-
+    public int highestItemId;
     public void AddItem(ItemSO newItem)
     {
         if (Items.Any(x => x.Item == newItem))
             return;
 
-        Items.Add(new(++id, newItem));
+        Items.Add(new(++highestItemId, newItem));
 
         EditorUtility.SetDirty(this);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }
-}
 
-[Serializable]
-public class ItemSOIdPair
-{
-    public ItemSOIdPair(int id, ItemSO item)
+    public int highestRecipeId;
+    public void AddRecipe(RecipeSO newRecipe)
     {
-        this.id = id;
-        this.item = item;
+        if (Recipes.Any(x => x.Recipe == newRecipe))
+            return;
+
+        Recipes.Add(new(++highestRecipeId, newRecipe));
+
+        EditorUtility.SetDirty(this);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
-    [SerializeField] private int id;
-    [SerializeField] private ItemSO item;
-
-    public int Id => id;
-    public ItemSO Item => item;
+    public bool editor_ShowItems;
+    public bool editor_ShowRecipes;
 }
 
 [CustomEditor(typeof(ItemManagerSO))]
 public class ItemManagerSOEditor : Editor
 {
     private ItemManagerSO manager;
+
     private ItemSO newItem;
+    private RecipeSO newRecipe;
 
     private void Awake() => manager = target as ItemManagerSO;
 
     public override void OnInspectorGUI()
     {
-        GUILayout.BeginHorizontal();
-        newItem = (ItemSO)EditorGUILayout.ObjectField(newItem, typeof(ItemSO), false);
-        if (GUILayout.Button("+"))
+        manager.editor_ShowItems = GUILayout.Toggle(manager.editor_ShowItems, "Show items");
+        GUILayout.Space(5);
+        if (manager.editor_ShowItems)
         {
-            manager.AddItem(newItem);
-            newItem = null;
-        }
-        GUILayout.EndHorizontal();
+            for (int i = 0; i < manager.Items.Count; i++)
+            {
+                if (manager.Items[i] == null)
+                    continue;
 
-        GUILayout.Space(15);
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.ObjectField(manager.Items[i].Item, typeof(ItemSO), false, GUILayout.Width(150));
+                GUILayout.Label($"Id: {manager.Items[i].Id}");
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+            }
 
-        for (int i = 0; i < manager.Items.Count; i++)
-        {
-            if (manager.Items[i] == null)
-                continue;
-
+            GUILayout.Space(5);
             GUILayout.BeginHorizontal();
-            GUILayout.Label(manager.Items[i].Item.Name);
-            GUILayout.Label(manager.Items[i].Id.ToString());
+            newItem = (ItemSO)EditorGUILayout.ObjectField(newItem, typeof(ItemSO), false);
+            if (GUILayout.Button("+", GUILayout.Width(33)) && newItem != null)
+            {
+                manager.AddItem(newItem);
+                newItem = null;
+            }
             GUILayout.EndHorizontal();
         }
 
-        if (GUILayout.Button("Reset"))
-        {
-            manager.Items = new();
-            manager.id = 0;
-        }
+        GUILayout.Space(manager.editor_ShowItems && manager.editor_ShowRecipes ? 30 : 10);
 
-        //base.OnInspectorGUI();
+        manager.editor_ShowRecipes = GUILayout.Toggle(manager.editor_ShowRecipes, "Show recipes");
+        GUILayout.Space(5);
+        if (manager.editor_ShowRecipes)
+        {
+            for (int i = 0; i < manager.Recipes.Count; i++)
+            {
+                if (manager.Recipes[i] == null)
+                    continue;
+
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.ObjectField(manager.Recipes[i].Recipe, typeof(RecipeSO), false, GUILayout.Width(150));
+                GUILayout.Label($"Id: {manager.Recipes[i].Id}");
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+            }
+
+            GUILayout.Space(5);
+            GUILayout.BeginHorizontal();
+            newRecipe = (RecipeSO)EditorGUILayout.ObjectField(newRecipe, typeof(RecipeSO), false);
+            if (GUILayout.Button("+", GUILayout.Width(33)) && newRecipe != null)
+            {
+                manager.AddRecipe(newRecipe);
+                newRecipe = null;
+            }
+            GUILayout.EndHorizontal();
+        }
     }
 }

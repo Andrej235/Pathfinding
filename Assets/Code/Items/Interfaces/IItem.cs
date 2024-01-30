@@ -1,9 +1,11 @@
 using UnityEngine;
 
-public interface IItem
+namespace Assets.Code.Items.Interfaces
 {
-    int Id { get; }
-    string Name { get; protected set; }
-    int MaxStack { get; protected set; }
-    Texture Icon { get; protected set; }
+    public interface IItem
+    {
+        string Name { get; }
+        int MaxStack { get; }
+        Texture Icon { get; }
+    }
 }

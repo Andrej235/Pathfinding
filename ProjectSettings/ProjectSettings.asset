@@ -691,9 +691,7 @@ PlayerSettings:
   webGLPowerPreference: 2
   scriptingDefineSymbols: {}
   additionalCompilerArguments:
-    Standalone:
-    - -nullable+
-    - -nullable:enable
+    Standalone: []
   platformArchitecture: {}
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}

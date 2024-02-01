@@ -47,6 +47,7 @@ namespace Assets.Code.Inventory
                 if (value is null)
                 {
                     item = null;
+                    id = -1;
                     return;
                 }
 

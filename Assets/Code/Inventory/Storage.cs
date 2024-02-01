@@ -109,21 +109,91 @@ namespace Assets.Code.Inventory
         /// <returns>Number of items taken, -1 if Item was not found</returns>
         public int Take(IItem item, int amount)
         {
-            return 0;
+            if (!Contains(item))
+                return -1;
+
+            int takenItems = 0;
+            var slotsContainingItem = storage.Where(x => x.Item == item);
+
+            foreach (var slotWithItem in slotsContainingItem)
+            {
+                if (amount <= 0)
+                    break;
+
+                if (amount >= slotWithItem.Amount)
+                {
+                    var available = amount - slotWithItem.Amount;
+                    slotWithItem.Item = null;
+                    slotWithItem.Amount = 0;
+                    takenItems += available;
+                    amount -= available;
+                }
+                else
+                {
+                    slotWithItem.Amount -= amount;
+                    takenItems += amount;
+                    amount = 0;
+                }
+                OnSlotChanged?.Invoke(this, new(storage.GetIndexOf(slotWithItem), slotWithItem.Amount, slotWithItem.Item));
+            }
+
+            return takenItems;
         }
 
+        /// <summary>
+        /// Removes all items from storage and returns a list of pairs (item, amount)
+        /// </summary>
+        /// <returns>A list of pairs (item, amount) where item represents the item that has been taken out of storage and amount represents the amount of an item which was taken out of storage</returns>
         public List<(IItem item, int amount)> TakeAll()
         {
-            return new();
+            List<(IItem item, int amount)> result = new();
+            foreach (var slot in storage.Where(x => x != null))
+                result.Add(new(slot.Item!, slot.Amount));
+
+            Clear();
+            return result;
+        }
+
+        /// <summary>
+        /// Takes specified items from a slot with the given index
+        /// </summary>
+        /// <returns>Number of items taken, -1 if index was outside of bounds or item in the slot is null</returns>
+        public int Take(int index, int amount)
+        {
+            int itemsTaken = 0;
+            var slot = storage[index];
+            if (slot == null || slot.Item == null)
+                return -1;
+
+            if (amount >= slot.Amount)
+            {
+                itemsTaken = slot.Amount;
+                slot.Amount = 0;
+                slot.Item = null;
+            }
+            else
+            {
+                slot.Amount -= amount;
+            }
+            return itemsTaken;
+        }
+
+        /// <summary>
+        /// Sets all items inside storage to null and amounts to 0
+        /// </summary>
+        public void Clear()
+        {
+            foreach (var slot in storage)
+            {
+                slot.Item = null;
+                slot.Amount = 0;
+            }
         }
 
         /// <summary>
         /// Searches for a given item in storage, if the appropriate amount of item is found returns true
         /// </summary>
         /// <returns>True if storage contains the appropriate amount of a given item</returns>
-        public bool Contains(IItem item, int amount = 1)
-        {
-            return false;
-        }
+        public bool Contains(IItem item, int amount = 1) => storage.Where(x => x.Item == item).Sum(x => x.Amount) >= amount;
     }
 }

@@ -18,64 +18,69 @@ namespace Assets.Code.Inventory
         {
             get
             {
-                inventory ??= new();//LoadInventoryData();
+                inventory ??= LoadInventoryData();
                 return inventory;
             }
 
             set => inventory = value;
         }
 
-        /*        public static void SaveInventoryData()
+        public static void SaveInventoryData()
+        {
+            InventoryDTO inventoryDTO = new()
+            {
+                Weapon = Inventory.Weapon.GetId(),
+                LeftAbility = Inventory.LeftAbility.GetId(),
+                RightAbility = Inventory.RightAbility.GetId(),
+                Accessories = Inventory.Accessories.Select(x => x.GetId()).ToList(),
+                Storage = Inventory.Storage.Select(x => new StorageSlotDTO()
                 {
-                    InventoryDTO inventoryDTO = new()
-                    {
-                        Weapon = Inventory.Weapon.GetId(),
-                        LeftAbility = Inventory.LeftAbility.GetId(),
-                        RightAbility = Inventory.RightAbility.GetId(),
-                        Accessories = Inventory.Accessories.Select(x => x.GetId()).ToList(),
-                        Storage = Inventory.Storage.Select(x => new StorageSlotDTO()
-                        {
-                            Amount = x.Amount,
-                            ItemId = x.Item.GetId(),
-                        }).ToList()
-                    };
+                    Amount = x.Amount,
+                    ItemId = x.Id,
+                }).ToList()
+            };
 
-                    var inventoryJson = JsonUtility.ToJson(inventoryDTO);
-                    File.WriteAllText(inventoryDataFilePath, inventoryJson);
-                }
+            var inventoryJson = JsonUtility.ToJson(inventoryDTO);
+            File.WriteAllText(inventoryDataFilePath, inventoryJson);
+        }
 
-                private static Inventory LoadInventoryData()
-                {
-                    if (!File.Exists(inventoryDataFilePath))
-                    {
-                        if (!Directory.Exists(dataFolderPath + @"\inventory"))
-                            Directory.CreateDirectory(dataFolderPath + @"\inventory");
+        private static Inventory LoadInventoryData()
+        {
+            if (!File.Exists(inventoryDataFilePath))
+            {
+                if (!Directory.Exists(dataFolderPath + @"\inventory"))
+                    Directory.CreateDirectory(dataFolderPath + @"\inventory");
 
-                        File.Create(inventoryDataFilePath);
-                        return new();
-                    }
+                File.Create(inventoryDataFilePath);
+                return new();
+            }
 
-                    var inventoryJson = File.ReadAllText(inventoryDataFilePath);
-                    if (string.IsNullOrWhiteSpace(inventoryJson))
-                        return new();
+            var inventoryJson = File.ReadAllText(inventoryDataFilePath);
+            if (string.IsNullOrWhiteSpace(inventoryJson))
+                return new();
 
-                    var inventoryDTO = JsonUtility.FromJson<InventoryDTO>(inventoryJson);
+            var inventoryDTO = JsonUtility.FromJson<InventoryDTO>(inventoryJson);
 
-                    var storage = inventoryDTO.Storage?.Select(x => new StorageSlot()
-                    {
-                        Id = x.ItemId,
-                        Amount = x.Amount,
-                    }).ToList();
-                    var accessories = inventoryDTO.Accessories?.Select(ItemManagerSO.Instance.GetItem).Cast<IAccessory>().ToList();
+            var storage = inventoryDTO.Storage.Aggregate(new Storage(20), (storage, slotDTO) =>
+            {
+                var item = ItemManagerSO.Instance.GetItem(slotDTO.ItemId);
+                if (item is null)
+                    return storage;
 
-                    return inventoryDTO is null ? new() : new()
-                    {
-                        Weapon = ItemManagerSO.Instance.GetItem(inventoryDTO.Weapon) as IWeapon,
-                        LeftAbility = ItemManagerSO.Instance.GetItem(inventoryDTO.LeftAbility) as IAbility,
-                        RightAbility = ItemManagerSO.Instance.GetItem(inventoryDTO.RightAbility) as IAbility,
-                        Accessories = accessories ?? new(),
-                        Storage = storage ?? new()
-                    };
-                }*/
+                storage.Add(item, slotDTO.Amount);
+                return storage;
+            });
+
+            var accessories = inventoryDTO.Accessories?.Select(ItemManagerSO.Instance.GetItem).Cast<IAccessory>().ToList();
+
+            return inventoryDTO is null ? new() : new()
+            {
+                Weapon = ItemManagerSO.Instance.GetItem(inventoryDTO.Weapon) as IWeapon,
+                LeftAbility = ItemManagerSO.Instance.GetItem(inventoryDTO.LeftAbility) as IAbility,
+                RightAbility = ItemManagerSO.Instance.GetItem(inventoryDTO.RightAbility) as IAbility,
+                Accessories = accessories ?? new(),
+                Storage = storage ?? new(20)
+            };
+        }
     }
 }

@@ -1,17 +1,17 @@
+using Assets.Code.Items.Interfaces;
 using Assets.Code.Items.ItemManager;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
 
+#nullable enable
 [CreateAssetMenu(fileName = "ItemManager", menuName = "ScriptableObjects/ItemManager")]
 public class ItemManagerSO : ScriptableObject
 {
     public List<ItemSOIdPair> Items = new();
     public List<RecipeSOIdPair> Recipes = new();
 
-    private static ItemManagerSO instance;
     public static ItemManagerSO Instance
     {
         get
@@ -22,6 +22,7 @@ public class ItemManagerSO : ScriptableObject
             return instance;
         }
     }
+    private static ItemManagerSO instance = null!;
 
     public int highestItemId;
     public void AddItem(ItemSO newItem)
@@ -49,6 +50,31 @@ public class ItemManagerSO : ScriptableObject
         AssetDatabase.Refresh();
     }
 
+
+    public IItem? GetItem(int id)
+    {
+        var item = Items.FirstOrDefault(x => x.Id == id)?.Item;
+        return item;
+    }
+
+    public int GetItemId(IItem item)
+    {
+        if (item is null)
+            return -1;
+
+        //var idPair = Items.FirstOrDefault(x => x.Item == (Object)item);
+        //Test the line above, then the line below
+        var idPair = Items.FirstOrDefault(x => (x.Item as IItem).Name == item.Name);
+        return idPair != null ? idPair.Id : -1;
+    }
+
+    public RecipeSO? GetRecipe(int id) => Recipes.FirstOrDefault(x => x.Id == id).Recipe;
+    public int GetRecipeId(RecipeSO recipe)
+    {
+        var idPair = Recipes.FirstOrDefault(x => x.Recipe == recipe);
+        return idPair != null ? idPair.Id : -1;
+    }
+
     public bool editor_ShowItems;
     public bool editor_ShowRecipes;
 }
@@ -56,12 +82,12 @@ public class ItemManagerSO : ScriptableObject
 [CustomEditor(typeof(ItemManagerSO))]
 public class ItemManagerSOEditor : Editor
 {
-    private ItemManagerSO manager;
+    private ItemManagerSO manager = null!;
 
-    private ItemSO newItem;
-    private RecipeSO newRecipe;
+    private ItemSO? newItem;
+    private RecipeSO? newRecipe;
 
-    private void Awake() => manager = target as ItemManagerSO;
+    private void Awake() => manager = (ItemManagerSO)target;
 
     public override void OnInspectorGUI()
     {
@@ -77,6 +103,13 @@ public class ItemManagerSOEditor : Editor
                 GUILayout.BeginHorizontal();
                 EditorGUILayout.ObjectField(manager.Items[i].Item, typeof(ItemSO), false, GUILayout.Width(150));
                 GUILayout.Label($"Id: {manager.Items[i].Id}");
+
+                if (GUILayout.Button("-", GUILayout.Width(33)))
+                {
+                    manager.Items.Remove(manager.Items[i]);
+                    SaveChanges();
+                }
+
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
             }

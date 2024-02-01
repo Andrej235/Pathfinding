@@ -9,7 +9,7 @@ namespace Assets.Code.Inventory
         public IWeapon? Weapon { get; set; }
         public IAbility? RightAbility { get; set; }
         public IAbility? LeftAbility { get; set; }
-        public List<StorageSlot> Storage { get; set; } = new();
+        public Storage Storage { get; set; } = new(20);
         public List<IAccessory> Accessories { get; set; } = new();
     }
 }

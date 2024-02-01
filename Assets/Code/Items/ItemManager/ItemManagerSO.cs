@@ -51,7 +51,12 @@ public class ItemManagerSO : ScriptableObject
     }
 
 
-    public IItem? GetItem(int id) => Items.FirstOrDefault(x => x.Id == id)?.Item;
+    public IItem? GetItem(int id)
+    {
+        var item = Items.FirstOrDefault(x => x.Id == id)?.Item;
+        return item;
+    }
+
     public int GetItemId(IItem item)
     {
         if (item is null)

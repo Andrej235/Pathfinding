@@ -5,14 +5,17 @@ public class TestingInventory : MonoBehaviour
 {
     void Start()
     {
-        InventoryManager.Inventory.Storage.Add(new()
+        StorageSlot slot = new()
         {
-            Item = ItemManagerSO.Instance.GetItem(1),
+            Id = 2,
             Amount = 15,
-        });
+        };
 
-        //var a = InventoryManager.Inventory.Storage;
-        //Debug.Log(a[0]?.Item.Name);
+        InventoryManager.Inventory.Storage.Add(slot);
+
+        var a = InventoryManager.Inventory.Storage;
+        foreach (var item in a)
+            Debug.Log(item.Item.Name);
     }
 
     public void Save()

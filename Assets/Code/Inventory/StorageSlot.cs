@@ -21,11 +21,11 @@ namespace Assets.Code.Inventory
                 if (value < 0)
                 {
                     id = -1;
-                    Item = null;
+                    item = null;
                     return;
                 }
 
-                item = ItemManagerSO.Instance.GetItem(Id);
+                item = ItemManagerSO.Instance.GetItem(value);
                 id = item is null ? -1 : value;
             }
         }
@@ -38,7 +38,7 @@ namespace Assets.Code.Inventory
                 if (Id == -1)
                     return null;
 
-                item = ItemManagerSO.Instance.GetItem(Id);
+                item ??= ItemManagerSO.Instance.GetItem(Id);
                 return item;
             }
 
@@ -55,7 +55,7 @@ namespace Assets.Code.Inventory
                     return;
 
                 item = value;
-                Id = newId;
+                id = newId;
             }
         }
 

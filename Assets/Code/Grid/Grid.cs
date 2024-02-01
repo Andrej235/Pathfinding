@@ -9,7 +9,19 @@ namespace Assets.Code.Grid
 
         public int Width { get; }
         public int Height { get; }
-        public float CellSize { get; }
+
+        public float CellSize
+        {
+            get => cellSize;
+            set
+            {
+                if (value < 0)
+                    return;
+
+                cellSize = value;
+            }
+        }
+        private float cellSize;
 
         public T[,] GridArray => gridArray;
         private readonly T[,] gridArray;

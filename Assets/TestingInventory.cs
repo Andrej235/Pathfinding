@@ -11,15 +11,15 @@ public class TestingInventory : MonoBehaviour
             Amount = 15,
         };
 
-        InventoryManager.Inventory.Storage.Add(slot);
+        //InventoryManager.Inventory.Storage.Add(slot);
 
         var a = InventoryManager.Inventory.Storage;
         foreach (var item in a)
             Debug.Log(item.Item.Name);
     }
 
-    public void Save()
-    {
-        InventoryManager.SaveInventoryData();
-    }
+    /*    public void Save()
+        {
+            InventoryManager.SaveInventoryData();
+        }*/
 }

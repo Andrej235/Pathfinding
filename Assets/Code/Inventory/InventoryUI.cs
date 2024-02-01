@@ -1,3 +1,4 @@
+using Assets.Code.Inventory;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +12,7 @@ public class InventoryUI : MonoBehaviour
         if (Input.GetButtonDown("Inventory"))
         {
             UIInventory.SetActive(!UIInventory.activeSelf);
+
         }
     }
 }

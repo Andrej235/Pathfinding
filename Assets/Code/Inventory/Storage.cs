@@ -4,9 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine.Rendering;
 
 namespace Assets.Code.Inventory
 {
@@ -40,7 +37,7 @@ namespace Assets.Code.Inventory
 
         /// <summary>
         /// Adds a given item to the storage
-        /// <br/ >if the given item already exists in storage or if amount exceeds it's maximum stack size it will be distributed across multiple storage slots
+        /// <br />if the given item already exists in storage or if amount exceeds it's maximum stack size it will be distributed across multiple storage slots
         /// </summary>
         /// <returns>Number of items added to the inventory</returns>
         public int Add(IItem item, int amount)
@@ -50,9 +47,9 @@ namespace Assets.Code.Inventory
 
             int addedItems = 0;
             StorageSlot? slot;
-            if (storage.Any(x => x.Item == item && x.Amount != x.Item.MaxStack))
+            if (storage.Any(x => x.Item == item && x.Amount < x.Item.MaxStack))
             {
-                var slotsWithItem = storage.Where(x => x.Item == item && x.Amount != x.Item.MaxStack);
+                var slotsWithItem = storage.Where(x => x.Item == item && x.Amount < x.Item.MaxStack);
 
                 foreach (var slotWithItem in slotsWithItem)
                 {
@@ -75,32 +72,89 @@ namespace Assets.Code.Inventory
                     OnSlotChanged?.Invoke(this, new(storage.GetIndexOf(slotWithItem), slotWithItem.Amount, slotWithItem.Item));
                 }
             }
-            else
-            {
-                while (amount > 0)
-                {
-                    slot = storage.FirstOrDefault(x => x.Id == -1);
-                    if (slot is null)
-                        break;
 
-                    slot.Item = item;
-                    if (amount > item.MaxStack)
-                    {
-                        slot.Amount = item.MaxStack;
-                        addedItems += item.MaxStack;
-                        amount -= item.MaxStack;
-                    }
-                    else
-                    {
-                        slot.Amount = amount;
-                        addedItems += amount;
-                        amount = 0;
-                    }
-                    OnSlotChanged?.Invoke(this, new(storage.GetIndexOf(slot), slot.Amount, slot.Item));
+            while (amount > 0)
+            {
+                slot = storage.FirstOrDefault(x => x.Id == -1);
+                if (slot is null)
+                    break;
+
+                slot.Item = item;
+                if (amount > item.MaxStack)
+                {
+                    slot.Amount = item.MaxStack;
+                    addedItems += item.MaxStack;
+                    amount -= item.MaxStack;
                 }
+                else
+                {
+                    slot.Amount = amount;
+                    addedItems += amount;
+                    amount = 0;
+                }
+                OnSlotChanged?.Invoke(this, new(storage.GetIndexOf(slot), slot.Amount, slot.Item));
             }
 
             return addedItems;
+        }
+
+        /// <summary>
+        /// Increases amount of items inside a slot with the given index
+        /// </summary>
+        /// <returns>Number of items added, -1 if index was outside of bounds or item in the slot is null</returns>
+        public int AddToSlot(int index, int amount)
+        {
+            if (index < 0 || index >= storage.Length)
+                return -1;
+
+            var slot = storage[index];
+            if (slot.Item == null)
+                return -1;
+
+            int itemsAdded;
+            if (amount > slot.Item.MaxStack - slot.Amount)
+            {
+                itemsAdded = slot.Item.MaxStack - slot.Amount;
+                slot.Amount = slot.Item.MaxStack;
+            }
+            else
+            {
+                slot.Amount += amount;
+                itemsAdded = amount;
+            }
+            OnSlotChanged?.Invoke(this, new(storage.GetIndexOf(slot), slot.Amount, slot.Item));
+            return itemsAdded;
+        }
+
+        /// <summary>
+        /// Increases amount of items inside a slot with the given index
+        /// <br />If the slot doesn't have an item already, it will be set to the given item/>
+        /// </summary>
+        /// <returns>Number of items added, -1 if index was outside of bounds or item in the slot is not the same as provided item</returns>
+        public int AddToSlot(IItem item, int index, int amount)
+        {
+            if (index < 0 || index >= storage.Length)
+                return -1;
+
+            var slot = storage[index];
+            if (slot.Item == item)
+                return -1;
+
+            slot.Item ??= item;
+
+            int itemsAdded;
+            if (amount > slot.Item.MaxStack - slot.Amount)
+            {
+                itemsAdded = slot.Item.MaxStack - slot.Amount;
+                slot.Amount = slot.Item.MaxStack;
+            }
+            else
+            {
+                slot.Amount += amount;
+                itemsAdded = amount;
+            }
+            OnSlotChanged?.Invoke(this, new(storage.GetIndexOf(slot), slot.Amount, slot.Item));
+            return itemsAdded;
         }
 
         /// <summary>
@@ -155,16 +209,20 @@ namespace Assets.Code.Inventory
         }
 
         /// <summary>
-        /// Takes specified items from a slot with the given index
+        /// Decreases amount of items inside a slot with the given index
         /// </summary>
         /// <returns>Number of items taken, -1 if index was outside of bounds or item in the slot is null</returns>
-        public int Take(int index, int amount)
+        public int TakeFromSlot(int index, int amount)
         {
-            int itemsTaken = 0;
-            var slot = storage[index];
-            if (slot == null || slot.Item == null)
+            if (index < 0 || index >= storage.Length)
                 return -1;
 
+            var slot = storage[index];
+            if (slot.Item == null)
+                return -1;
+
+
+            int itemsTaken;
             if (amount >= slot.Amount)
             {
                 itemsTaken = slot.Amount;
@@ -173,6 +231,7 @@ namespace Assets.Code.Inventory
             }
             else
             {
+                itemsTaken = amount;
                 slot.Amount -= amount;
             }
             return itemsTaken;
@@ -187,6 +246,7 @@ namespace Assets.Code.Inventory
             {
                 slot.Item = null;
                 slot.Amount = 0;
+                OnSlotChanged?.Invoke(this, new(storage.GetIndexOf(slot), slot.Amount, slot.Item));
             }
         }
 
@@ -195,5 +255,42 @@ namespace Assets.Code.Inventory
         /// </summary>
         /// <returns>True if storage contains the appropriate amount of a given item</returns>
         public bool Contains(IItem item, int amount = 1) => storage.Where(x => x.Item == item).Sum(x => x.Amount) >= amount;
+
+        /// <summary>
+        /// Swaps the item inside of a slot with the given index with the provided newItem and newAmount
+        /// </summary>
+        /// <returns>
+        /// Tuple containing the old item and it's amount
+        /// <br />If the index was ouside of bounds, returns (null, -1)
+        /// </returns>
+        public (IItem? item, int amount) Swap(int index, IItem newItem, int newAmount)
+        {
+            if (index < 0 || index >= storage.Length)
+                return new(null, -1);
+
+            var slot = storage[index];
+            (IItem? item, int amount) oldPair = new(slot.Item, slot.Amount);
+
+            slot.Item = newItem;
+            slot.Amount = newAmount;
+            OnSlotChanged?.Invoke(this, new(index, slot.Amount, slot.Item));
+            return oldPair;
+        }
+
+        /// <summary>
+        /// Swaps values of 2 slots with the given indices
+        /// </summary>
+        public void Swap(int index1, int index2)
+        {
+            if (index1 < 0 || index1 >= storage.Length || index2 < 0 || index2 >= storage.Length)
+                return;
+
+            (storage[index1], storage[index2]) = (storage[index2], storage[index1]);
+
+            var slot1 = storage[index1];
+            var slot2 = storage[index2];
+            OnSlotChanged?.Invoke(this, new(index1, slot1.Amount, slot1.Item));
+            OnSlotChanged?.Invoke(this, new(index2, slot2.Amount, slot2.Item));
+        }
     }
 }

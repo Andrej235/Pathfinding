@@ -18,8 +18,8 @@ public class TestingInventory : MonoBehaviour
             Debug.Log(item.Item.Name);
     }
 
-    /*    public void Save()
-        {
-            InventoryManager.SaveInventoryData();
-        }*/
+    public void Save()
+    {
+        InventoryManager.SaveInventoryData();
+    }
 }

@@ -316,10 +316,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 99250106}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 94e35668683b5774e8ebf745d7012bd8, type: 3}
+  m_Script: {fileID: 11500000, guid: 9a2a25bc34f00044b980fdd157f09bb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visibilityRange: 0
+  visibilityRange: 7
 --- !u!212 &99250109
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -396,57 +396,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 99250106}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf867c409d590c74b9fe00f43c7e11df, type: 3}
+  m_Script: {fileID: 11500000, guid: 52ba2bdf6d8c9ab419e1aeec528a5c39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0
---- !u!1 &220146262
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 220146264}
-  - component: {fileID: 220146263}
-  m_Layer: 0
-  m_Name: PathFindingVisual
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &220146263
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 220146262}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5772619c9faede5458a539b8d5206e6b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pathfindingVisual: {fileID: 670427349}
-  enableDebug: 0
-  includeText: 1
---- !u!4 &220146264
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 220146262}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  speed: 7
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,6 +540,7 @@ GameObject:
   - component: {fileID: 670427348}
   - component: {fileID: 670427347}
   - component: {fileID: 670427351}
+  - component: {fileID: 670427352}
   m_Layer: 0
   m_Name: PathfindingVisual
   m_TagString: Untagged
@@ -653,7 +607,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 670427346}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c209da9c5cee03646bb56aedbdb76e23, type: 3}
+  m_Script: {fileID: 11500000, guid: 3302fa48eb10e9746b667bcd97951ba1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!4 &670427350
@@ -683,9 +637,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5772619c9faede5458a539b8d5206e6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pathfindingVisual: {fileID: 670427349}
+  pathfindingVisual: {fileID: 670427352}
   enableDebug: 0
   includeText: 0
+--- !u!114 &670427352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 670427346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78c02456469db094d9d89192f1c4838f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1185142329
 GameObject:
   m_ObjectHideFlags: 0
@@ -872,7 +838,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1488405563}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 062315544e95e2a47a5bfe6dcdedba16, type: 3}
+  m_Script: {fileID: 11500000, guid: 40793d8612b4e404a964feed677394ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!4 &1488405565
@@ -1021,14 +987,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1878410417}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 726a6967c86d68a4680078864e93c5dc, type: 3}
+  m_Script: {fileID: 11500000, guid: 6bd769012de53db4a811b37c2cd8f8b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementSpeed: 5
+  movementSpeed: 10
   rigidBody2D: {fileID: 1878410424}
-  dashSpeed: 10
-  dashTime: 0.25
-  dashCooldown: 0.4
+  dashSpeed: 20
+  dashTime: 0.2
+  dashCooldown: 0.5
 --- !u!50 &1878410424
 Rigidbody2D:
   serializedVersion: 4
@@ -1158,7 +1124,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 1185142331}
   - {fileID: 519420032}
-  - {fileID: 220146264}
   - {fileID: 670427350}
   - {fileID: 1878410421}
   - {fileID: 99250110}

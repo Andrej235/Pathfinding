@@ -4,6 +4,5 @@ using UnityEngine;
 
 public class StorageItems : MonoBehaviour
 {
-    public bool[] isFull;
     public GameObject[] slots;
 }

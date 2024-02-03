@@ -29,7 +29,12 @@ namespace Assets.Code.Inventory
 
         private readonly StorageSlot[] storage;
 
-        public Storage(int capacity) => storage = new StorageSlot[capacity];
+        public Storage(int capacity)
+        {
+            storage = new StorageSlot[capacity];
+            for (int i = 0; i < storage.Length; i++)
+                storage[i] = new() { Id = -1 };
+        }
 
         public IEnumerator<StorageSlot> GetEnumerator() => GetEnumerator();
 

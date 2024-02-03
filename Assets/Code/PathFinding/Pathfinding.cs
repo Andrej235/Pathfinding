@@ -61,10 +61,11 @@ public class Pathfinding
                 Grid[x, y].neighbours = GetNeighbourList(Grid[x, y]);
     }
 
-    public List<PathNode>? FindPath(int startX, int startY, int endX, int endY)
+    public List<PathNode>? FindPath(int startX, int startY, int endX, int endY, uint depth = uint.MinValue)
     {
         PathNode? startNode = Grid[startX, startY];
         PathNode? endNode = Grid[endX, endY];
+        uint cycle = 0;
 
         if (startNode is null || endNode is null)
             return null;
@@ -91,9 +92,14 @@ public class Pathfinding
 
         while (OpenListQueue.Count > 0)
         {
+            if (cycle > depth)
+                return null;
+
             PathNode currentNode = OpenListQueue.Dequeue();
             if (currentNode == endNode)
                 return CalculatePath(endNode);
+            else
+                cycle++;
 
             closedList.Add(currentNode);
 
@@ -127,12 +133,12 @@ public class Pathfinding
         return null;
     }
 
-    public List<PathNode>? FindPath(Vector2 worldStartPos, Vector2 worldEndPos)
+    public List<PathNode>? FindPath(Vector2 worldStartPos, Vector2 worldEndPos, uint depth = uint.MaxValue)
     {
         (int startX, int startY) = Grid.GetXY(worldStartPos);
         (int endX, int endY) = Grid.GetXY(worldEndPos);
 
-        return FindPath(startX, startY, endX, endY);
+        return FindPath(startX, startY, endX, endY, depth);
     }
 
     private static List<PathNode> CalculatePath(PathNode node)

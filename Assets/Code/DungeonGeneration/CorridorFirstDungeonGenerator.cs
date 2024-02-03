@@ -1,4 +1,5 @@
 using Assets.Code.Grid;
+using Assets.Code.PathFinding;
 using CodeMonkey.Utils;
 using System;
 using System.Collections.Generic;
@@ -11,9 +12,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
     [SerializeField] private int corridorCount = 5;
     [SerializeField][Range(.1f, 1f)] private float roomPercent = .8f;
 
-    protected override void RunProceduralGeneration() => CorridorFirstGeneration();
-
-    private void CorridorFirstGeneration()
+    protected override IEnumerable<Vector2Int> RunProceduralGeneration()
     {
         HashSet<Vector2Int> floorPositions = new();
         HashSet<Vector2Int> potentialRoomPositions = new();
@@ -32,88 +31,8 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         });
 
         tileMapVisualizer.PaintFloorTiles(floorPositions);
-        var wallPositions = WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
-
-        //Grid
-        var minX = wallPositions.Min(x => x.x);
-        var maxX = wallPositions.Max(x => x.x);
-        var minY = wallPositions.Min(x => x.y);
-        var maxY = wallPositions.Max(x => x.y);
-
-        grid = new Grid<PathNode>(Mathf.Abs(maxX) + Mathf.Abs(minX) + 2, Mathf.Abs(maxY) + Mathf.Abs(minY) + 2, 1, originPosition: new(minX, minY), createGridObject: (g, x, y) => new(x, y));
-        foreach (var wallPosition in wallPositions)
-        {
-            var (x, y) = grid.GetXY(wallPosition);
-            var cell = grid[x, y];
-
-            if (cell != null)
-                grid[x, y].isWalkable = false;
-        }
-
-        pathfinding = new Pathfinding(grid);
+        return WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
     }
-
-    #region Testing
-    private Grid<PathNode> grid;
-    private Pathfinding pathfinding;
-    private List<PathNode> path;
-    [SerializeField] private bool includeGridGizmos;
-
-    private void OnDrawGizmos()
-    {
-        if (grid is null)
-            return;
-
-        if (includeGridGizmos)
-        {
-            for (int x = 0; x < grid.Width; x++)
-            {
-                for (int y = 0; y < grid.Height; y++)
-                {
-                    if (!grid[x, y].isWalkable)
-                        Gizmos.color = Color.white;
-
-                    Gizmos.DrawLine(grid.GetWorldPosition(x, y), grid.GetWorldPosition(x, y + 1));
-                    Gizmos.DrawLine(grid.GetWorldPosition(x, y), grid.GetWorldPosition(x + 1, y));
-
-                    Gizmos.color = Color.black;
-                }
-            }
-
-            Gizmos.DrawLine(grid.GetWorldPosition(0, grid.Height), grid.GetWorldPosition(grid.Width, grid.Height));
-            Gizmos.DrawLine(grid.GetWorldPosition(grid.Width, 0), grid.GetWorldPosition(grid.Width, grid.Height));
-        }
-
-        if (path is null || !path.Any())
-            return;
-
-        Gizmos.color = Color.blue;
-        for (int i = 0; i < path.Count - 1; i++)
-            Gizmos.DrawLine(
-                grid.GetWorldPosition(path[i].x, path[i].y) + Vector2.one * (grid.CellSize / 2),
-                grid.GetWorldPosition(path[i + 1].x, path[i + 1].y) + Vector2.one * (grid.CellSize / 2));
-        Gizmos.color = Color.black;
-    }
-
-    Vector2? pathfindingStartPos = null;
-
-    private void Update()
-    {
-        if (pathfinding != null && Input.GetMouseButtonDown(0))
-        {
-            if (pathfindingStartPos is null)
-            {
-                path = null;
-                pathfindingStartPos = UtilsClass.GetMouseWorldPosition();
-            }
-            else
-            {
-                path = pathfinding.FindPath(pathfindingStartPos ?? Vector2.zero, UtilsClass.GetMouseWorldPosition());
-                pathfindingStartPos = null;
-            }
-        }
-    }
-    #endregion
 
     protected List<Vector2Int> IncreaseCorridorSizeToTwo(List<Vector2Int> corridor)
     {

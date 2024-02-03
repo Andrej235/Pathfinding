@@ -5,13 +5,13 @@ using Random = UnityEngine.Random;
 
 public class SimpleRandomWalkDungeonGenerator : AbstractDungeonGenerator
 {
-    [SerializeField] protected SimpleRandomWalkDataSO roomGenerationParameters;
+    [SerializeField] protected SimpleRandomWalkDataSO randomWalkRoomGenerationParameters;
 
-    protected override void RunProceduralGeneration()
+    protected override IEnumerable<Vector2Int> RunProceduralGeneration()
     {
-        HashSet<Vector2Int> floorPositions = RunRandomWalk(roomGenerationParameters, startPosition);
+        HashSet<Vector2Int> floorPositions = RunRandomWalk(randomWalkRoomGenerationParameters, startPosition);
         tileMapVisualizer.PaintFloorTiles(floorPositions);
-        WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
+        return WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
     }
 
     protected HashSet<Vector2Int> RunRandomWalk(SimpleRandomWalkDataSO parameters, Vector2Int position)

@@ -1,3 +1,6 @@
+using Assets.Code.Grid;
+using Assets.Code.PathFinding;
+using CodeMonkey.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +12,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
     [SerializeField] private int corridorCount = 5;
     [SerializeField][Range(.1f, 1f)] private float roomPercent = .8f;
 
-    protected override void RunProceduralGeneration() => CorridorFirstGeneration();
-
-    private void CorridorFirstGeneration()
+    protected override IEnumerable<Vector2Int> RunProceduralGeneration()
     {
         HashSet<Vector2Int> floorPositions = new();
         HashSet<Vector2Int> potentialRoomPositions = new();
@@ -29,15 +30,8 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
             return floorPositions;
         });
 
-        /*        for (int i = 0; i < corridors.Count; i++)
-                {
-                    corridors[i] = IncreaseCorridorSizeToThree(corridors[i]);
-                    floorPositions.UnionWith(corridors[i]);
-                }*/
-
-        var wallPositions = WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
-        floorPositions.UnionWith(wallPositions);
         tileMapVisualizer.PaintFloorTiles(floorPositions);
+        return WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
     }
 
     protected List<Vector2Int> IncreaseCorridorSizeToTwo(List<Vector2Int> corridor)
@@ -103,7 +97,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         {
             if (!roomFloorPositions.Contains(position))
             {
-                var newRoomFloor = RunRandomWalk(roomGenerationParameters, position);
+                var newRoomFloor = RunRandomWalk(randomWalkRoomGenerationParameters, position);
                 roomFloorPositions.UnionWith(newRoomFloor);
             }
         }
@@ -135,7 +129,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
 
         foreach (var roomPosition in roomsToCreate)
         {
-            var roomFloor = RunRandomWalk(roomGenerationParameters, roomPosition);
+            var roomFloor = RunRandomWalk(randomWalkRoomGenerationParameters, roomPosition);
             roomPositions.UnionWith(roomFloor);
         }
         return roomPositions;

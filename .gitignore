@@ -149,8 +149,6 @@ StyleCopReport.xml
 *_h.h
 *.ilk
 # *.meta
-*.cs.meta
-*.json.meta
 *.obj
 *.iobj
 *.pch

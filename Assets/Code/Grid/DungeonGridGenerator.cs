@@ -9,6 +9,9 @@ namespace Assets.Code.PathFinding
     {
         public static Grid<PathNode> GeneratePathNodeGrid(IEnumerable<Vector2Int> wallPositions)
         {
+            if (wallPositions is null || !wallPositions.Any())
+                return new(0, 0, 0);
+
             var minX = wallPositions.Min(x => x.x);
             var maxX = wallPositions.Max(x => x.x);
             var minY = wallPositions.Min(x => x.y);

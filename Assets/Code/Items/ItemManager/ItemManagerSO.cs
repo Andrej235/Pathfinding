@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 
 #nullable enable
-[CreateAssetMenu(fileName = "ItemManager", menuName = "ScriptableObjects/ItemManager")]
+[CreateAssetMenu(fileName = "ItemManager", menuName = "Scriptable objects/Item manager")]
 public class ItemManagerSO : ScriptableObject
 {
     public List<ItemSOIdPair> Items = new();

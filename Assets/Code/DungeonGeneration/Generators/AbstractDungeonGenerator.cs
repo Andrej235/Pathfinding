@@ -4,10 +4,15 @@ using CodeMonkey.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public abstract class AbstractDungeonGenerator : MonoBehaviour
 {
-    [SerializeField] protected TilemapVisualizer tileMapVisualizer;
+    [SerializeField] private Tilemap floorTilemap;
+    [SerializeField] private Tilemap wallTilemap;
+
+    protected TilemapVisualizer tileMapVisualizer;
+    [SerializeField] protected DungeonParametersSO parameters;
     [SerializeField] protected Vector2Int startPosition;
     private Grid<PathNode> grid;
     private Pathfinding pathfinding;
@@ -18,6 +23,7 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
     /// </summary>
     public void GenerateDungeon()
     {
+        tileMapVisualizer = new(parameters, floorTilemap, wallTilemap);
         tileMapVisualizer.Clear();
 
         grid = DungeonGridGenerator.GeneratePathNodeGrid(RunProceduralGeneration());

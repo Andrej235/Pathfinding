@@ -40,7 +40,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         var minY = wallPositions.Min(x => x.y);
         var maxY = wallPositions.Max(x => x.y);
 
-        grid = new Grid<PathNode>(Mathf.Abs(maxX) + Mathf.Abs(minX), Mathf.Abs(maxY) + Mathf.Abs(minY), 1, originPosition: new(minX, minY), createGridObject: (g, x, y) => new(x, y));
+        grid = new Grid<PathNode>(Mathf.Abs(maxX) + Mathf.Abs(minX) + 2, Mathf.Abs(maxY) + Mathf.Abs(minY) + 2, 1, originPosition: new(minX, minY), createGridObject: (g, x, y) => new(x, y));
         foreach (var wallPosition in wallPositions)
         {
             var (x, y) = grid.GetXY(wallPosition);
@@ -87,18 +87,30 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         if (path is null || !path.Any())
             return;
 
+        Gizmos.color = Color.blue;
         for (int i = 0; i < path.Count - 1; i++)
             Gizmos.DrawLine(
                 grid.GetWorldPosition(path[i].x, path[i].y) + Vector2.one * (grid.CellSize / 2),
                 grid.GetWorldPosition(path[i + 1].x, path[i + 1].y) + Vector2.one * (grid.CellSize / 2));
+        Gizmos.color = Color.black;
     }
+
+    Vector2? pathfindingStartPos = null;
 
     private void Update()
     {
         if (pathfinding != null && Input.GetMouseButtonDown(0))
         {
-            var (toX, toY) = grid.GetXY(UtilsClass.GetMouseWorldPosition());
-            path = pathfinding.FindPath(0, 0, toX, toY);
+            if (pathfindingStartPos is null)
+            {
+                path = null;
+                pathfindingStartPos = UtilsClass.GetMouseWorldPosition();
+            }
+            else
+            {
+                path = pathfinding.FindPath(pathfindingStartPos ?? Vector2.zero, UtilsClass.GetMouseWorldPosition());
+                pathfindingStartPos = null;
+            }
         }
     }
     #endregion
@@ -178,7 +190,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         foreach (var position in floorPositions)
         {
             int neighboursCount = 0;
-            foreach (var direction in Direction2D.cardinalDirectionsList)
+            foreach (var direction in Directions.cardinalDirectionsList)
             {
                 if (floorPositions.Contains(position + direction))
                     neighboursCount++;

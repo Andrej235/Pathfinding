@@ -5,34 +5,39 @@ using UnityEngine.Tilemaps;
 
 public class TilemapVisualizer : MonoBehaviour
 {
-    [SerializeField]
-    private Tilemap floorTilemap, wallTilemap;
-    [SerializeField]
-    private TileBase floorTile, wallTop, wallSideRight, wallSiderLeft, wallBottom, wallFull, 
-        wallInnerCornerDownLeft, wallInnerCornerDownRight, 
-        wallDiagonalCornerDownRight, wallDiagonalCornerDownLeft, wallDiagonalCornerUpRight, wallDiagonalCornerUpLeft;
+    [SerializeField] private Tilemap floorTilemap;
+    [SerializeField] private Tilemap wallTilemap;
+    [SerializeField] private TileBase floorTile;
+    [SerializeField] private TileBase wallTop;
+    [SerializeField] private TileBase wallSideRight;
+    [SerializeField] private TileBase wallSiderLeft;
+    [SerializeField] private TileBase wallBottom;
+    [SerializeField] private TileBase wallFull;
+    [SerializeField] private TileBase wallInnerCornerDownLeft;
+    [SerializeField] private TileBase wallInnerCornerDownRight;
+    [SerializeField] private TileBase wallDiagonalCornerDownRight;
+    [SerializeField] private TileBase wallDiagonalCornerDownLeft;
+    [SerializeField] private TileBase wallDiagonalCornerUpRight;
+    [SerializeField] private TileBase wallDiagonalCornerUpLeft;
 
-    public void PaintFloorTiles(IEnumerable<Vector2Int> floorPositions)
-    {
-        PaintTiles(floorPositions, floorTilemap, floorTile);
-    }
+    public void PaintFloorTiles(IEnumerable<Vector2Int> floorPositions) => PaintTiles(floorPositions, floorTilemap, floorTile);
 
     private void PaintTiles(IEnumerable<Vector2Int> positions, Tilemap tilemap, TileBase tile)
     {
         foreach (var position in positions)
-        {
             PaintSingleTile(tilemap, tile, position);
-        }
     }
 
-    internal void PaintSingleBasicWall(Vector2Int position, string binaryType)
+    public void PaintSingleBasicWall(Vector2Int position, string binaryType)
     {
         int typeAsInt = Convert.ToInt32(binaryType, 2);
         TileBase tile = null;
+
         if (WallTypesHelper.wallTop.Contains(typeAsInt))
         {
             tile = wallTop;
-        }else if (WallTypesHelper.wallSideRight.Contains(typeAsInt))
+        }
+        else if (WallTypesHelper.wallSideRight.Contains(typeAsInt))
         {
             tile = wallSideRight;
         }
@@ -40,7 +45,7 @@ public class TilemapVisualizer : MonoBehaviour
         {
             tile = wallSiderLeft;
         }
-        else if (WallTypesHelper.wallBottm.Contains(typeAsInt))
+        else if (WallTypesHelper.wallBottom.Contains(typeAsInt))
         {
             tile = wallBottom;
         }
@@ -49,23 +54,11 @@ public class TilemapVisualizer : MonoBehaviour
             tile = wallFull;
         }
 
-        if (tile!=null)
+        if (tile != null)
             PaintSingleTile(wallTilemap, tile, position);
     }
 
-    private void PaintSingleTile(Tilemap tilemap, TileBase tile, Vector2Int position)
-    {
-        var tilePosition = tilemap.WorldToCell((Vector3Int)position);
-        tilemap.SetTile(tilePosition, tile);
-    }
-
-    public void Clear()
-    {
-        floorTilemap.ClearAllTiles();
-        wallTilemap.ClearAllTiles();
-    }
-
-    internal void PaintSingleCornerWall(Vector2Int position, string binaryType)
+    public void PaintSingleCornerWall(Vector2Int position, string binaryType)
     {
         int typeASInt = Convert.ToInt32(binaryType, 2);
         TileBase tile = null;
@@ -105,5 +98,13 @@ public class TilemapVisualizer : MonoBehaviour
 
         if (tile != null)
             PaintSingleTile(wallTilemap, tile, position);
+    }
+
+    private void PaintSingleTile(Tilemap tilemap, TileBase tile, Vector2Int position) => tilemap.SetTile(tilemap.WorldToCell((Vector3Int)position), tile);
+
+    public void Clear()
+    {
+        floorTilemap.ClearAllTiles();
+        wallTilemap.ClearAllTiles();
     }
 }

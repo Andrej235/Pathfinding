@@ -1,3 +1,5 @@
+using Assets.Code.DungeonGeneration.Models;
+using Assets.Code.Utility;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -44,7 +46,73 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
             dungeonData.Rooms.Add(new(roomFloor, roomBounds.center));
             floor.UnionWith(roomFloor);
         }
+
+        foreach (var room in dungeonData.Rooms)
+            PopulateRoomWithProps(room);
+
         return floor;
+    }
+
+    private void PopulateRoomWithProps(Room room)
+    {
+        PopulateFloorTilesWithProps(room, room.InnerTiles);
+    }
+
+    private void PopulateFloorTilesWithProps(Room room, HashSet<Vector2Int> tiles)
+    {
+        foreach (var tile in tiles)
+        {
+            if (dungeonData.Path.Contains(tile))
+                continue;
+
+            if (RNG.Chance(parameters.chanceToSpawnAProp / 100))
+            {
+                var prop = parameters.propsChance.GetByChance();
+
+                room.PropPositions.Add(tile);
+                room.PropObjects.Add(Instantiate(prop.propPrefab, new Vector3(tile.x, tile.y) + Vector3.one * .5f, Quaternion.identity, transform));
+
+                if (prop.placeAsAGroup)
+                {
+                    var currentTile = tile;
+                    var groupSize = RNG.Get(prop.groupMinCount, prop.groupMaxCount);
+
+                    HashSet<Vector2Int> groupMemberPositions = new() { tile };
+
+                    int notFoundCount = 0;
+                    int maxNotFoundCount = prop.groupMinCount / 3;
+
+                    for (int i = 0; i < groupSize; i++)
+                    {
+                        bool foundTile = false;
+                        for (int j = 0; j < 3; j++)
+                        {
+                            var direction = Directions.RandomCardinalDirection;
+                            var neighbourTile = currentTile + direction;
+
+                            if (!room.PropPositions.Contains(neighbourTile) && tiles.Contains(neighbourTile))
+                            {
+                                currentTile = neighbourTile;
+                                room.PropPositions.Add(currentTile);
+                                room.PropObjects.Add(Instantiate(prop.propPrefab, new Vector3(currentTile.x, currentTile.y) + Vector3.one * .5f, Quaternion.identity, transform));
+
+                                groupMemberPositions.Add(neighbourTile);
+                                foundTile = true;
+                                break;
+                            }
+                        }
+
+                        if (!foundTile)
+                        {
+                            if (notFoundCount < maxNotFoundCount)
+                                currentTile = groupMemberPositions.GetRandomElement();
+                            else
+                                return;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters)

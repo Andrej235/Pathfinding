@@ -1,3 +1,4 @@
+using Assets.Code.Utility;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -21,23 +22,27 @@ public class DungeonParametersSO : ScriptableObject
     public TileBase wallDiagonalCornerUpLeft;
 
     public double chanceToSpawnAProp;
-    public List<PropSOChance> propsChance;
+    public List<PropChance> propsChance;
 
     public bool editor_AreTilesShown;
     public bool editor_ArePropsShown;
 
     [Serializable]
-    public class PropSOChance
+    public class PropChance : IChance<PropSO>
     {
-        public double chance;
-        public PropSO prop;
+        [SerializeField] private float chance;
+        [SerializeField] private PropSO value;
 
-        public PropSOChance() { }
-
-        public PropSOChance(double chance, PropSO prop)
+        public PropSO Value
         {
-            this.chance = chance;
-            this.prop = prop;
+            get => value;
+            set => this.value = value;
+        }
+
+        public float Chance
+        {
+            get => chance;
+            set => chance = value;
         }
     }
 }
@@ -74,7 +79,7 @@ public class DungeonParametersSOEditor : Editor
         if (dungeonParameters.editor_ArePropsShown)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(new GUIContent("Chance to spawn a prop: ", "Chance to spawn a prop on a specific tile\n\nIf the dungeon generator decides to spawn a prop on a tile it will than start going through each prop in a random order and attempting to spawn it"));
+            GUILayout.Label(new GUIContent("Chance to spawn a prop: ", "Chance to spawn a prop on a specific tile\n\nIf the dungeon generator decides to spawn a prop on a tile it will than select a random prop and attempt to spawn it"));
             dungeonParameters.chanceToSpawnAProp = EditorGUILayout.DoubleField(dungeonParameters.chanceToSpawnAProp);
             GUILayout.EndHorizontal();
 
@@ -86,10 +91,10 @@ public class DungeonParametersSOEditor : Editor
 
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(new GUIContent("Prop: ", "PropSO reference which will be used to spawn the prop with it's info"), GUILayout.Width(50));
-                propChance.prop = (PropSO)EditorGUILayout.ObjectField(propChance.prop, typeof(PropSO), false);
+                propChance.Value = (PropSO)EditorGUILayout.ObjectField(propChance.Value, typeof(PropSO), false);
 
                 GUILayout.Label(new GUIContent("Chance: ", "Chance to spawn this specific prop when spawning a prop on a tile"), GUILayout.Width(50));
-                propChance.chance = EditorGUILayout.DoubleField(propChance.chance, GUILayout.Width(50));
+                propChance.Chance = EditorGUILayout.FloatField(propChance.Chance, GUILayout.Width(50));
 
                 GUILayout.Space(3);
 

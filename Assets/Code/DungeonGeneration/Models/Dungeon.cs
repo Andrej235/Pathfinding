@@ -9,7 +9,7 @@ namespace Assets.Code.DungeonGeneration.Models
         public List<Room> Rooms { get; private set; } = new();
         public HashSet<Vector2Int> Path { get; private set; } = new();
 
-        internal void Reset()
+        public void Reset()
         {
             Rooms = new();
             Path = new();

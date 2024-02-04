@@ -4,9 +4,11 @@ using Assets.Code.PathFinding;
 using CodeMonkey.Utils;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.WSA;
+using Application = UnityEngine.Application;
 
 public abstract class AbstractDungeonGenerator : MonoBehaviour
 {
@@ -30,6 +32,9 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
         tileMapVisualizer.Clear();
 
         dungeonData ??= new();
+        for (int i = transform.childCount; i > 0; --i)
+            DestroyImmediate(transform.GetChild(0).gameObject);
+
         dungeonData.Reset();
 
         grid = DungeonGridGenerator.GeneratePathNodeGrid(RunProceduralGeneration());

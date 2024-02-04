@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -17,14 +20,30 @@ public class DungeonParametersSO : ScriptableObject
     public TileBase wallDiagonalCornerUpRight;
     public TileBase wallDiagonalCornerUpLeft;
 
-    //Derive 2 classes from this one: CorridorFirstDungeonParametersSO and RoomFirstDungeonParametersSO
-    public RandomWalkParametersSO randomWalkParameters;
+    public double chanceToSpawnAProp;
+    public List<PropSOChance> propsChance;
 
-    //public bool editor_AreTileFieldsShown;
+    public bool editor_AreTilesShown;
+    public bool editor_ArePropsShown;
+
+    [Serializable]
+    public class PropSOChance
+    {
+        public double chance;
+        public PropSO prop;
+
+        public PropSOChance() { }
+
+        public PropSOChance(double chance, PropSO prop)
+        {
+            this.chance = chance;
+            this.prop = prop;
+        }
+    }
 }
 
-//[CustomEditor(typeof(DungeonParametersSO))]
-/*public class DungeonParametersSOEditor : Editor
+[CustomEditor(typeof(DungeonParametersSO))]
+public class DungeonParametersSOEditor : Editor
 {
     private DungeonParametersSO dungeonParameters;
 
@@ -32,18 +51,16 @@ public class DungeonParametersSO : ScriptableObject
 
     public override void OnInspectorGUI()
     {
-        dungeonParameters.editor_AreTileFieldsShown = EditorGUILayout.Foldout(dungeonParameters.editor_AreTileFieldsShown, "Tiles");
-        if (dungeonParameters.editor_AreTileFieldsShown)
+        EditorGUI.BeginChangeCheck();
+
+        dungeonParameters.editor_AreTilesShown = EditorGUILayout.Foldout(dungeonParameters.editor_AreTilesShown, "Tiles");
+        if (dungeonParameters.editor_AreTilesShown)
         {
             DisplayTileBase(ref dungeonParameters.floorTile, "Floor");
             DisplayTileBase(ref dungeonParameters.wallTop, "Top");
             DisplayTileBase(ref dungeonParameters.wallSideRight, "Right");
             DisplayTileBase(ref dungeonParameters.wallSideLeft, "Left");
             DisplayTileBase(ref dungeonParameters.wallBottom, "Bottom");
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Bottom", GUILayout.Width(150));
-            dungeonParameters.wallBottom = (TileBase)EditorGUILayout.ObjectField(dungeonParameters.wallBottom, typeof(TileBase), false);
-            GUILayout.EndHorizontal();
             DisplayTileBase(ref dungeonParameters.wallFull, "Full");
             DisplayTileBase(ref dungeonParameters.wallInnerCornerDownLeft, "Inner bottom left");
             DisplayTileBase(ref dungeonParameters.wallInnerCornerDownRight, "Inner bottom right");
@@ -53,7 +70,49 @@ public class DungeonParametersSO : ScriptableObject
             DisplayTileBase(ref dungeonParameters.wallDiagonalCornerUpLeft, "Top left");
         }
 
-        base.OnInspectorGUI();
+        dungeonParameters.editor_ArePropsShown = EditorGUILayout.Foldout(dungeonParameters.editor_ArePropsShown, "Props");
+        if (dungeonParameters.editor_ArePropsShown)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(new GUIContent("Chance to spawn a prop: ", "Chance to spawn a prop on a specific tile\n\nIf the dungeon generator decides to spawn a prop on a tile it will than start going through each prop in a random order and attempting to spawn it"));
+            dungeonParameters.chanceToSpawnAProp = EditorGUILayout.DoubleField(dungeonParameters.chanceToSpawnAProp);
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(10);
+
+            for (int i = 0; i < dungeonParameters.propsChance.Count; i++)
+            {
+                var propChance = dungeonParameters.propsChance[i];
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(new GUIContent("Prop: ", "PropSO reference which will be used to spawn the prop with it's info"), GUILayout.Width(50));
+                propChance.prop = (PropSO)EditorGUILayout.ObjectField(propChance.prop, typeof(PropSO), false);
+
+                GUILayout.Label(new GUIContent("Chance: ", "Chance to spawn this specific prop when spawning a prop on a tile"), GUILayout.Width(50));
+                propChance.chance = EditorGUILayout.DoubleField(propChance.chance, GUILayout.Width(50));
+
+                GUILayout.Space(3);
+
+                if (GUILayout.Button("-"))
+                {
+                    dungeonParameters.propsChance.Remove(propChance);
+                }
+                GUILayout.EndHorizontal();
+            }
+
+            GUILayout.Space(5);
+            if (GUILayout.Button("+"))
+            {
+                dungeonParameters.propsChance.Add(new());
+            }
+        }
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            EditorUtility.SetDirty(dungeonParameters);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
     }
 
     public void DisplayTileBase(ref TileBase tileBase, string name)
@@ -71,4 +130,4 @@ public class DungeonParametersSO : ScriptableObject
         tilemap = (Tilemap)EditorGUILayout.ObjectField(tilemap, typeof(Tilemap), true);
         GUILayout.EndHorizontal();
     }
-}*/
+}

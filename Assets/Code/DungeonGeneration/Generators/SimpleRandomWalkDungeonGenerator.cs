@@ -5,7 +5,7 @@ using Random = UnityEngine.Random;
 
 public class SimpleRandomWalkDungeonGenerator : AbstractDungeonGenerator
 {
-    [SerializeField] protected SimpleRandomWalkDataSO randomWalkRoomGenerationParameters;
+    [SerializeField] protected RandomWalkParametersSO randomWalkRoomGenerationParameters;
 
     protected override IEnumerable<Vector2Int> RunProceduralGeneration()
     {
@@ -14,7 +14,7 @@ public class SimpleRandomWalkDungeonGenerator : AbstractDungeonGenerator
         return WallGenerator.CreateWalls(floorPositions, tileMapVisualizer);
     }
 
-    protected HashSet<Vector2Int> RunRandomWalk(SimpleRandomWalkDataSO parameters, Vector2Int position)
+    protected HashSet<Vector2Int> RunRandomWalk(RandomWalkParametersSO parameters, Vector2Int position)
     {
         var currentPosition = position;
         HashSet<Vector2Int> floorPositions = new();

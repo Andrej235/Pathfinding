@@ -3,24 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class TilemapVisualizer : MonoBehaviour
+public class TilemapVisualizer
 {
-    [SerializeField] private Tilemap floorTilemap;
-    [SerializeField] private Tilemap wallTilemap;
-    [SerializeField] private TileBase floorTile;
-    [SerializeField] private TileBase wallTop;
-    [SerializeField] private TileBase wallSideRight;
-    [SerializeField] private TileBase wallSiderLeft;
-    [SerializeField] private TileBase wallBottom;
-    [SerializeField] private TileBase wallFull;
-    [SerializeField] private TileBase wallInnerCornerDownLeft;
-    [SerializeField] private TileBase wallInnerCornerDownRight;
-    [SerializeField] private TileBase wallDiagonalCornerDownRight;
-    [SerializeField] private TileBase wallDiagonalCornerDownLeft;
-    [SerializeField] private TileBase wallDiagonalCornerUpRight;
-    [SerializeField] private TileBase wallDiagonalCornerUpLeft;
+    private readonly Tilemap floorTilemap;
+    private readonly Tilemap wallTilemap;
+    private readonly DungeonParametersSO dungeonParameters;
 
-    public void PaintFloorTiles(IEnumerable<Vector2Int> floorPositions) => PaintTiles(floorPositions, floorTilemap, floorTile);
+    public TilemapVisualizer(DungeonParametersSO dungeonParameters, Tilemap floorTilemap, Tilemap wallTilemap)
+    {
+        this.dungeonParameters = dungeonParameters;
+        this.floorTilemap = floorTilemap;
+        this.wallTilemap = wallTilemap;
+    }
+
+    public void PaintFloorTiles(IEnumerable<Vector2Int> floorPositions) => PaintTiles(floorPositions, floorTilemap, dungeonParameters.floorTile);
 
     private void PaintTiles(IEnumerable<Vector2Int> positions, Tilemap tilemap, TileBase tile)
     {
@@ -35,23 +31,23 @@ public class TilemapVisualizer : MonoBehaviour
 
         if (WallTypesHelper.wallTop.Contains(typeAsInt))
         {
-            tile = wallTop;
+            tile = dungeonParameters.wallTop;
         }
         else if (WallTypesHelper.wallSideRight.Contains(typeAsInt))
         {
-            tile = wallSideRight;
+            tile = dungeonParameters.wallSideRight;
         }
         else if (WallTypesHelper.wallSideLeft.Contains(typeAsInt))
         {
-            tile = wallSiderLeft;
+            tile = dungeonParameters.wallSideLeft;
         }
         else if (WallTypesHelper.wallBottom.Contains(typeAsInt))
         {
-            tile = wallBottom;
+            tile = dungeonParameters.wallBottom;
         }
         else if (WallTypesHelper.wallFull.Contains(typeAsInt))
         {
-            tile = wallFull;
+            tile = dungeonParameters.wallFull;
         }
 
         if (tile != null)
@@ -65,35 +61,35 @@ public class TilemapVisualizer : MonoBehaviour
 
         if (WallTypesHelper.wallInnerCornerDownLeft.Contains(typeASInt))
         {
-            tile = wallInnerCornerDownLeft;
+            tile = dungeonParameters.wallInnerCornerDownLeft;
         }
         else if (WallTypesHelper.wallInnerCornerDownRight.Contains(typeASInt))
         {
-            tile = wallInnerCornerDownRight;
+            tile = dungeonParameters.wallInnerCornerDownRight;
         }
         else if (WallTypesHelper.wallDiagonalCornerDownLeft.Contains(typeASInt))
         {
-            tile = wallDiagonalCornerDownLeft;
+            tile = dungeonParameters.wallDiagonalCornerDownLeft;
         }
         else if (WallTypesHelper.wallDiagonalCornerDownRight.Contains(typeASInt))
         {
-            tile = wallDiagonalCornerDownRight;
+            tile = dungeonParameters.wallDiagonalCornerDownRight;
         }
         else if (WallTypesHelper.wallDiagonalCornerUpRight.Contains(typeASInt))
         {
-            tile = wallDiagonalCornerUpRight;
+            tile = dungeonParameters.wallDiagonalCornerUpRight;
         }
         else if (WallTypesHelper.wallDiagonalCornerUpLeft.Contains(typeASInt))
         {
-            tile = wallDiagonalCornerUpLeft;
+            tile = dungeonParameters.wallDiagonalCornerUpLeft;
         }
         else if (WallTypesHelper.wallFullEightDirections.Contains(typeASInt))
         {
-            tile = wallFull;
+            tile = dungeonParameters.wallFull;
         }
         else if (WallTypesHelper.wallBottmEightDirections.Contains(typeASInt))
         {
-            tile = wallBottom;
+            tile = dungeonParameters.wallBottom;
         }
 
         if (tile != null)

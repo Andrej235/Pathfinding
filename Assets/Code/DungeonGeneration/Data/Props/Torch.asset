@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Torch
   m_EditorClassIdentifier: 
   propPrefab: {fileID: 7494621802842358889, guid: 8037aa44a08851c4795bf4a81167a3fd, type: 3}
-  placementType: -1
+  placementType: 62
   placeAsAGroup: 1
   groupMinCount: 1
-  groupMaxCount: 2
+  groupMaxCount: 7

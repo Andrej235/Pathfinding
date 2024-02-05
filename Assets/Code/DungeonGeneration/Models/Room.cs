@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -66,5 +67,16 @@ namespace Assets.Code.DungeonGeneration.Models
         public List<GameObject> EnemyObjects { get; set; } = new();
 
         public HashSet<Vector2Int> PositionsAccessibleFromPath { get; set; } = new();
+
+        public HashSet<Vector2Int> GetTiles(PropSO.PropPlacementType propPlacementType) => propPlacementType switch
+        {
+            PropSO.PropPlacementType.Center => InnerTiles,
+            PropSO.PropPlacementType.NextToTopWall => TilesNextToTopWall,
+            PropSO.PropPlacementType.NextToRightWall => TilesNextToRightWall,
+            PropSO.PropPlacementType.NextToBottomWall => TilesNextToBottomWall,
+            PropSO.PropPlacementType.NextToLeftWall => TilesNextToLeftWall,
+            PropSO.PropPlacementType.Corner => CornerTiles,
+            _ => new(),
+        };
     }
 }

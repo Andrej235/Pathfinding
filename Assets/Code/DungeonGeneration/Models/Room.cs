@@ -1,5 +1,7 @@
+using Assets.Code.PathFinding;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Code.DungeonGeneration.Models
@@ -66,7 +68,7 @@ namespace Assets.Code.DungeonGeneration.Models
 
         public List<GameObject> EnemyObjects { get; set; } = new();
 
-        public HashSet<Vector2Int> PositionsAccessibleFromPath { get; set; } = new();
+        public HashSet<Vector2Int> TilesAccessibleFromPath { get; set; } = new();
 
         public HashSet<Vector2Int> GetTiles(PropSO.PropPlacementType propPlacementType) => propPlacementType switch
         {
@@ -78,5 +80,7 @@ namespace Assets.Code.DungeonGeneration.Models
             PropSO.PropPlacementType.Corner => CornerTiles,
             _ => new(),
         };
+
+        public void UpdateTilesAccessibleFromPath() => TilesAccessibleFromPath = PathfindingAlgorithms.GetReachableBFS(Vector2Int.RoundToInt(RoomCenter), Floor, PropPositions);
     }
 }

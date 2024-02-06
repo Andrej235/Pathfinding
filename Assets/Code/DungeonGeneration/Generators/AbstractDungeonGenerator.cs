@@ -5,6 +5,7 @@ using CodeMonkey.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.WSA;
@@ -38,6 +39,10 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
         dungeonData.Reset();
 
         grid = DungeonGridGenerator.GeneratePathNodeGrid(RunProceduralGeneration());
+
+        foreach (var room in dungeonData.Rooms)
+            room.UpdateTilesAccessibleFromPath();
+
         pathfinding = new Pathfinding(grid);
     }
 
@@ -47,10 +52,12 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
     /// <returns>An IEnumerable<Vector2Int> where each element represents a position of a wall</returns>
     protected abstract IEnumerable<Vector2Int> RunProceduralGeneration();
 
-    #region Testing
+    #region Gizmos / Testing
     private List<PathNode> path;
     [SerializeField] private bool includeGridGizmos;
     [SerializeField] private bool includeRoomGizmos;
+    [SerializeField] private bool includeAccessibleFromPathGizmos;
+    [SerializeField] private bool includePathGizmos;
 
     private void OnDrawGizmos()
     {
@@ -87,41 +94,53 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
             }
         }
 
-        if (dungeonData is null || !includeRoomGizmos)
+        if (dungeonData is null)
             return;
 
-        foreach (var room in dungeonData.Rooms)
+        if (includeRoomGizmos)
+        {
+            foreach (var room in dungeonData.Rooms)
+            {
+                Gizmos.color = Color.black;
+                DrawCubes(room.InnerTiles);
+
+                Gizmos.color = Color.gray;
+                DrawCubes(room.CornerTiles);
+
+                Gizmos.color = Color.red;
+                DrawCubes(room.TilesNextToTopWall);
+
+                Gizmos.color = Color.green;
+                DrawCubes(room.TilesNextToRightWall);
+
+                Gizmos.color = Color.blue;
+                DrawCubes(room.TilesNextToBottomWall);
+
+                Gizmos.color = Color.cyan;
+                DrawCubes(room.TilesNextToLeftWall);
+            }
+        }
+
+        if (includeAccessibleFromPathGizmos)
+        {
+            Gizmos.color = Color.white;
+            foreach (var room in dungeonData.Rooms)
+                DrawCubes(room.TilesAccessibleFromPath);
+        }
+
+        if (includePathGizmos)
         {
             Gizmos.color = Color.black;
-            foreach (var tile in room.InnerTiles)
-                DrawCube(tile);
-
-            Gizmos.color = Color.gray;
-            foreach (var tile in room.CornerTiles)
-                DrawCube(tile);
-
-            Gizmos.color = Color.red;
-            foreach (var tile in room.TilesNextToTopWall)
-                DrawCube(tile);
-
-            Gizmos.color = Color.green;
-            foreach (var tile in room.TilesNextToRightWall)
-                DrawCube(tile);
-
-            Gizmos.color = Color.blue;
-            foreach (var tile in room.TilesNextToBottomWall)
-                DrawCube(tile);
-
-            Gizmos.color = Color.cyan;
-            foreach (var tile in room.TilesNextToLeftWall)
+            foreach (var tile in dungeonData.Path)
                 DrawCube(tile);
         }
 
-        Gizmos.color = Color.white;
-        foreach (var tile in dungeonData.Path)
-            DrawCube(tile);
-
         static void DrawCube(Vector2Int tile) => Gizmos.DrawCube(tile + Vector2.one * .5f, new(1, 1));
+        static void DrawCubes(IEnumerable<Vector2Int> tiles)
+        {
+            foreach (var tile in tiles)
+                Gizmos.DrawCube(tile + (Vector2.one * .5f), new(1, 1));
+        }
     }
 
     Vector2? pathfindingStartPos = null;

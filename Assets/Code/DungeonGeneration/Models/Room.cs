@@ -1,13 +1,20 @@
 using Assets.Code.PathFinding;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Assets.Code.DungeonGeneration.Models
 {
     public class Room
     {
+        public enum RoomType
+        {
+            None = 0,
+            Start = 1,
+            Enemy = 2,
+            Treassure = 4,
+            Boss = 8,
+        }
+
         public Room(HashSet<Vector2Int> floor, Vector2 roomCenter)
         {
             Floor = floor;

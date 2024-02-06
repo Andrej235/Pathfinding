@@ -26,10 +26,6 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         dungeonFloorPositions.UnionWith(corridors);
         dungeonData.Path.UnionWith(corridors);
 
-        //HAS to be called AFTER corridors have been added to dungeon data
-        foreach (var room in dungeonData.Rooms)
-            PopulateRoomWithProps(room);
-
         tileMapVisualizer.PaintFloorTiles(dungeonFloorPositions);
         return WallGenerator.CreateWalls(dungeonFloorPositions, tileMapVisualizer);
     }
@@ -53,6 +49,12 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         }
 
         return floor;
+    }
+
+    protected override void PopulateRooms()
+    {
+        foreach (var room in dungeonData.Rooms)
+            PopulateRoomWithProps(room);
     }
 
     private void PopulateRoomWithProps(Room room)

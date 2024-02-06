@@ -1,6 +1,7 @@
 using Assets.Code.DungeonGeneration.Models;
 using Assets.Code.Grid;
 using Assets.Code.PathFinding;
+using Assets.Code.Utility;
 using CodeMonkey.Utils;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,11 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
     [SerializeField] protected DungeonParametersSO parameters;
     [SerializeField] protected Vector2Int startPosition;
     private Grid<PathNode> grid;
-    private Pathfinding pathfinding;
+    protected Pathfinding pathfinding;
+
+    protected Room startRoom;
+    protected Room bossRoom;
+
     public Pathfinding DungeonPathfinding => pathfinding;
     protected Dungeon dungeonData;
 
@@ -39,12 +44,25 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
         dungeonData.Reset();
 
         grid = DungeonGridGenerator.GeneratePathNodeGrid(RunProceduralGeneration());
+        pathfinding = new Pathfinding(grid);
 
         foreach (var room in dungeonData.Rooms)
             room.UpdateTilesAccessibleFromPath();
 
-        pathfinding = new Pathfinding(grid);
+        AsignRoomTypes();
+        PopulateRooms();
     }
+
+    private void AsignRoomTypes()
+    {
+        startRoom = dungeonData.Rooms.GetRandomElement();
+        var rooms = dungeonData.Rooms.OrderBy(x => pathfinding.FindPath(startRoom.RoomCenter, x.RoomCenter).Count);
+
+        //The furthest room is supposed to be the boss room
+        bossRoom = rooms.Last();
+    }
+
+    protected abstract void PopulateRooms();
 
     /// <summary>
     /// Generates a dungeon
@@ -58,44 +76,53 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
     [SerializeField] private bool includeRoomGizmos;
     [SerializeField] private bool includeAccessibleFromPathGizmos;
     [SerializeField] private bool includePathGizmos;
+    [SerializeField] private bool includeRoomTypeGizmos;
 
     private void OnDrawGizmos()
     {
-        if (grid != null)
+        if (grid == null || dungeonData is null)
+            return;
+
+        if (includeRoomTypeGizmos)
         {
-            if (includeGridGizmos)
-            {
-                for (int x = 0; x < grid.Width; x++)
-                {
-                    for (int y = 0; y < grid.Height; y++)
-                    {
-                        if (!grid[x, y].isWalkable)
-                            Gizmos.color = Color.white;
+            Gizmos.color = Color.cyan;
+            DrawCubes(startRoom.Floor);
 
-                        Gizmos.DrawLine(grid.GetWorldPosition(x, y), grid.GetWorldPosition(x, y + 1));
-                        Gizmos.DrawLine(grid.GetWorldPosition(x, y), grid.GetWorldPosition(x + 1, y));
+            Gizmos.color = Color.red;
+            DrawCubes(bossRoom.Floor);
 
-                        Gizmos.color = Color.black;
-                    }
-                }
-
-                Gizmos.DrawLine(grid.GetWorldPosition(0, grid.Height), grid.GetWorldPosition(grid.Width, grid.Height));
-                Gizmos.DrawLine(grid.GetWorldPosition(grid.Width, 0), grid.GetWorldPosition(grid.Width, grid.Height));
-            }
-
-            if (path is not null && path.Any())
-            {
-                Gizmos.color = Color.blue;
-                for (int i = 0; i < path.Count - 1; i++)
-                    Gizmos.DrawLine(
-                        grid.GetWorldPosition(path[i].x, path[i].y) + Vector2.one * (grid.CellSize / 2),
-                        grid.GetWorldPosition(path[i + 1].x, path[i + 1].y) + Vector2.one * (grid.CellSize / 2));
-                Gizmos.color = Color.black;
-            }
+            return;
         }
 
-        if (dungeonData is null)
-            return;
+        if (includeGridGizmos)
+        {
+            for (int x = 0; x < grid.Width; x++)
+            {
+                for (int y = 0; y < grid.Height; y++)
+                {
+                    if (!grid[x, y].isWalkable)
+                        Gizmos.color = Color.white;
+
+                    Gizmos.DrawLine(grid.GetWorldPosition(x, y), grid.GetWorldPosition(x, y + 1));
+                    Gizmos.DrawLine(grid.GetWorldPosition(x, y), grid.GetWorldPosition(x + 1, y));
+
+                    Gizmos.color = Color.black;
+                }
+            }
+
+            Gizmos.DrawLine(grid.GetWorldPosition(0, grid.Height), grid.GetWorldPosition(grid.Width, grid.Height));
+            Gizmos.DrawLine(grid.GetWorldPosition(grid.Width, 0), grid.GetWorldPosition(grid.Width, grid.Height));
+        }
+
+        if (path != null && path.Any())
+        {
+            Gizmos.color = Color.blue;
+            for (int i = 0; i < path.Count - 1; i++)
+                Gizmos.DrawLine(
+                    grid.GetWorldPosition(path[i].x, path[i].y) + Vector2.one * (grid.CellSize / 2),
+                    grid.GetWorldPosition(path[i + 1].x, path[i + 1].y) + Vector2.one * (grid.CellSize / 2));
+            Gizmos.color = Color.black;
+        }
 
         if (includeRoomGizmos)
         {

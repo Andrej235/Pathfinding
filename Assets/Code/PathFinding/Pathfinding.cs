@@ -15,6 +15,7 @@ public class Pathfinding
         Grid = grid;
     }
 
+    ///<inheritdoc cref="PathfindingAlgorithms.RunAStar{T}(IGrid{T}, int, int, int, int, uint)"/>
     public List<PathNode>? FindPath(int startX, int startY, int endX, int endY, uint depth = uint.MinValue) => Grid.RunAStar(startX, startY, endX, endY, depth);
 
     public List<PathNode>? FindPath(Vector2 worldStartPos, Vector2 worldEndPos, uint depth = uint.MaxValue)

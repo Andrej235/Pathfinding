@@ -1,3 +1,4 @@
+using Assets.Code.DungeonGeneration.Models;
 using Assets.Code.Utility;
 using System;
 using System.Collections.Generic;
@@ -23,9 +24,11 @@ public class DungeonParametersSO : ScriptableObject
 
     public double chanceToSpawnAProp;
     public List<PropChance> propsChance;
+    public List<RoomTypeChance> roomTypesChance;
 
     public bool editor_AreTilesShown;
     public bool editor_ArePropsShown;
+    public bool editor_AreRoomsShown;
 
     [Serializable]
     public class PropChance : IChance<PropSO>
@@ -34,6 +37,25 @@ public class DungeonParametersSO : ScriptableObject
         [SerializeField] private PropSO value;
 
         public PropSO Value
+        {
+            get => value;
+            set => this.value = value;
+        }
+
+        public float Chance
+        {
+            get => chance;
+            set => chance = value;
+        }
+    }
+
+    [Serializable]
+    public class RoomTypeChance : IChance<Room.RoomType>
+    {
+        [SerializeField] private float chance;
+        [SerializeField] private Room.RoomType value;
+
+        public Room.RoomType Value
         {
             get => value;
             set => this.value = value;
@@ -99,17 +121,39 @@ public class DungeonParametersSOEditor : Editor
                 GUILayout.Space(3);
 
                 if (GUILayout.Button("-"))
-                {
                     dungeonParameters.propsChance.Remove(propChance);
-                }
                 GUILayout.EndHorizontal();
             }
 
             GUILayout.Space(5);
             if (GUILayout.Button("+"))
-            {
                 dungeonParameters.propsChance.Add(new());
+        }
+
+        dungeonParameters.editor_AreRoomsShown = EditorGUILayout.Foldout(dungeonParameters.editor_AreRoomsShown, "Rooms");
+        if (dungeonParameters.editor_AreRoomsShown)
+        {
+            for (int i = 0; i < dungeonParameters.roomTypesChance.Count; i++)
+            {
+                var roomTypeChance = dungeonParameters.roomTypesChance[i];
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(new GUIContent("Room: "), GUILayout.Width(50));
+                roomTypeChance.Value = (Room.RoomType)EditorGUILayout.EnumFlagsField(roomTypeChance.Value);
+
+                GUILayout.Label(new GUIContent("Chance: ", "Chance of a room with this particular room type spawning"), GUILayout.Width(50));
+                roomTypeChance.Chance = EditorGUILayout.FloatField(roomTypeChance.Chance, GUILayout.Width(50));
+
+                GUILayout.Space(3);
+
+                if (GUILayout.Button("-"))
+                    dungeonParameters.roomTypesChance.Remove(roomTypeChance);
+                GUILayout.EndHorizontal();
             }
+
+            GUILayout.Space(5);
+            if (GUILayout.Button("+"))
+                dungeonParameters.roomTypesChance.Add(new());
         }
 
         if (EditorGUI.EndChangeCheck())

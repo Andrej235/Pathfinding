@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,6 +20,11 @@ namespace Assets.Code.Utility
         public static T GetRandomElement<T>(this List<T> objects) => objects[random.Next(0, objects.Count)];
         public static T GetRandomElement<T>(this T[] objects) => objects[random.Next(0, objects.Length)];
         public static T GetRandomElement<T>(this IEnumerable<T> objects) => objects.ElementAtOrDefault(random.Next(0, objects.Count()));
+        public static object GetRandomElement(this IEnumerable objects)
+        {
+            var objectsGeneric = objects.Cast<object>();
+            return objectsGeneric.ElementAtOrDefault(random.Next(0, objectsGeneric.Count()));
+        }
 
         public static T GetByChance<T>(this IEnumerable<IChance<T>> possibleValues)
         {

@@ -3,14 +3,11 @@ using Assets.Code.Grid;
 using Assets.Code.PathFinding;
 using Assets.Code.Utility;
 using CodeMonkey.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
-using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.WSA;
-using Application = UnityEngine.Application;
 
 public abstract class AbstractDungeonGenerator : MonoBehaviour
 {
@@ -46,20 +43,26 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
         grid = DungeonGridGenerator.GeneratePathNodeGrid(RunProceduralGeneration());
         pathfinding = new Pathfinding(grid);
 
-        foreach (var room in dungeonData.Rooms)
-            room.UpdateTilesAccessibleFromPath();
-
         AsignRoomTypes();
         PopulateRooms();
+
+        foreach (var room in dungeonData.Rooms)
+            room.UpdateTilesAccessibleFromPath();
     }
 
     private void AsignRoomTypes()
     {
         startRoom = dungeonData.Rooms.GetRandomElement();
+        startRoom.type = Room.RoomType.Start;
+
         var rooms = dungeonData.Rooms.OrderBy(x => pathfinding.FindPath(startRoom.RoomCenter, x.RoomCenter).Count);
+        foreach (var room in rooms)
+            room.type = parameters.roomTypesChance.GetByChance();
+        //room.type = (Room.RoomType)Enum.GetValues(typeof(Room.RoomType)).GetRandomElement();
 
         //The furthest room is supposed to be the boss room
         bossRoom = rooms.Last();
+        bossRoom.type = Room.RoomType.Boss;
     }
 
     protected abstract void PopulateRooms();
@@ -85,6 +88,21 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
 
         if (includeRoomTypeGizmos)
         {
+            foreach (var room in dungeonData.Rooms)
+            {
+                Gizmos.color = room.type switch
+                {
+                    Room.RoomType.None => Color.black,
+                    Room.RoomType.Start => Color.cyan,
+                    Room.RoomType.Enemy => Color.yellow,
+                    Room.RoomType.Treassure => Color.magenta,
+                    Room.RoomType.Boss => Color.red,
+                    _ => Color.white,
+                };
+
+                DrawCubes(room.Floor);
+            }
+
             Gizmos.color = Color.cyan;
             DrawCubes(startRoom.Floor);
 

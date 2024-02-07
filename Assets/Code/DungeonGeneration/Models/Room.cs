@@ -14,6 +14,7 @@ namespace Assets.Code.DungeonGeneration.Models
             Treassure = 4,
             Boss = 8,
         }
+        public RoomType type;
 
         public Room(HashSet<Vector2Int> floor, Vector2 roomCenter)
         {
@@ -58,6 +59,8 @@ namespace Assets.Code.DungeonGeneration.Models
             TilesNextToRightWall.ExceptWith(CornerTiles);
             TilesNextToBottomWall.ExceptWith(CornerTiles);
             TilesNextToLeftWall.ExceptWith(CornerTiles);
+
+            type = RoomType.None;
         }
 
         public Vector2 RoomCenter { get; }

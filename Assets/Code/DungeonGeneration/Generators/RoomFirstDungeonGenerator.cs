@@ -2,7 +2,6 @@ using Assets.Code.DungeonGeneration.Models;
 using Assets.Code.Utility;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -49,10 +48,13 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
             floor.UnionWith(roomFloor);
         }
 
+        return floor;
+    }
+
+    protected override void PopulateRooms()
+    {
         foreach (var room in dungeonData.Rooms)
             PopulateRoomWithProps(room);
-
-        return floor;
     }
 
     private void PopulateRoomWithProps(Room room)
@@ -71,9 +73,7 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         if (possibleProps.Count() <= 0)
             return;
 
-        HashSet<Vector2Int> tiles = room.GetTiles(propPlacementType);
-
-        foreach (var tile in tiles)
+        foreach (var tile in room.GetTiles(propPlacementType).Except(dungeonData.Path))
         {
             if (dungeonData.Path.Contains(tile))
                 continue;
@@ -131,9 +131,10 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
 
     private bool TryPlaceProp(Room room, Vector2Int tileToPlaceOn, PropSO.PropPlacementType placementType)
     {
-        if (room.PropPositions.Contains(tileToPlaceOn) && dungeonData.Path.Contains(tileToPlaceOn))
+        if (room.PropPositions.Contains(tileToPlaceOn) || dungeonData.Path.Contains(tileToPlaceOn))
             return false;
 
+        //TODO: Add support for bigger props
         //Go through each propplacementtype and check if the tileToPlaceOn is a part of a collection prop can be placed on
 
         if (placementType.HasFlag(PropSO.PropPlacementType.Center))

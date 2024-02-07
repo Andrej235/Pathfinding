@@ -69,7 +69,12 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
 
     private void PopulateFloorTilesWithProps(Room room, PropSO.PropPlacementType propPlacementType)
     {
-        var possibleProps = parameters.propsChance.Where(x => x.Value.placementType.HasFlag(propPlacementType));
+        var specificRoomTypeProps = parameters.roomTypesChance.FirstOrDefault(x => x.Value == room.type)?.SpecificRoomPropsChance;
+
+        var possibleProps = parameters.propsChance
+            .Union(specificRoomTypeProps ?? new())
+            .Where(x => x.Value.placementType.HasFlag(propPlacementType));
+
         if (possibleProps.Count() <= 0)
             return;
 

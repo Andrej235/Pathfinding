@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static DungeonParametersSO;
 
 [CreateAssetMenu(fileName = "DungeonParameters", menuName = "Scriptable objects/Dungeon parameters")]
 public class DungeonParametersSO : ScriptableObject
@@ -54,6 +55,7 @@ public class DungeonParametersSO : ScriptableObject
     {
         [SerializeField] private float chance;
         [SerializeField] private Room.RoomType value;
+        [SerializeField] private List<PropChance> specificRoomProps;
 
         public Room.RoomType Value
         {
@@ -66,6 +68,14 @@ public class DungeonParametersSO : ScriptableObject
             get => chance;
             set => chance = value;
         }
+
+        public List<PropChance> SpecificRoomPropsChance
+        {
+            get => specificRoomProps;
+            set => specificRoomProps = value;
+        }
+
+        public bool editor_ArePropsShown;
     }
 }
 
@@ -107,27 +117,7 @@ public class DungeonParametersSOEditor : Editor
 
             GUILayout.Space(10);
 
-            for (int i = 0; i < dungeonParameters.propsChance.Count; i++)
-            {
-                var propChance = dungeonParameters.propsChance[i];
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label(new GUIContent("Prop: ", "PropSO reference which will be used to spawn the prop with it's info"), GUILayout.Width(50));
-                propChance.Value = (PropSO)EditorGUILayout.ObjectField(propChance.Value, typeof(PropSO), false);
-
-                GUILayout.Label(new GUIContent("Chance: ", "Chance to spawn this specific prop when spawning a prop on a tile"), GUILayout.Width(50));
-                propChance.Chance = EditorGUILayout.FloatField(propChance.Chance, GUILayout.Width(50));
-
-                GUILayout.Space(3);
-
-                if (GUILayout.Button("-"))
-                    dungeonParameters.propsChance.Remove(propChance);
-                GUILayout.EndHorizontal();
-            }
-
-            GUILayout.Space(5);
-            if (GUILayout.Button("+"))
-                dungeonParameters.propsChance.Add(new());
+            DisplayPropChanceList(dungeonParameters.propsChance);
         }
 
         dungeonParameters.editor_AreRoomsShown = EditorGUILayout.Foldout(dungeonParameters.editor_AreRoomsShown, "Rooms");
@@ -149,6 +139,12 @@ public class DungeonParametersSOEditor : Editor
                 if (GUILayout.Button("-"))
                     dungeonParameters.roomTypesChance.Remove(roomTypeChance);
                 GUILayout.EndHorizontal();
+
+                roomTypeChance.editor_ArePropsShown = EditorGUILayout.Foldout(roomTypeChance.editor_ArePropsShown, "Specific room props: ");
+                if (roomTypeChance.editor_ArePropsShown)
+                    DisplayPropChanceList(roomTypeChance.SpecificRoomPropsChance);
+
+                GUILayout.Space(7);
             }
 
             GUILayout.Space(5);
@@ -162,6 +158,31 @@ public class DungeonParametersSOEditor : Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+    }
+
+    private void DisplayPropChanceList(List<PropChance> propsChance)
+    {
+        for (int i = 0; i < propsChance.Count; i++)
+        {
+            var propChance = propsChance[i];
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(new GUIContent("Prop: ", "PropSO reference which will be used to spawn the prop with it's info"), GUILayout.Width(50));
+            propChance.Value = (PropSO)EditorGUILayout.ObjectField(propChance.Value, typeof(PropSO), false);
+
+            GUILayout.Label(new GUIContent("Chance: ", "Chance to spawn this specific prop when spawning a prop on a tile"), GUILayout.Width(50));
+            propChance.Chance = EditorGUILayout.FloatField(propChance.Chance, GUILayout.Width(50));
+
+            GUILayout.Space(3);
+
+            if (GUILayout.Button("-"))
+                propsChance.Remove(propChance);
+            GUILayout.EndHorizontal();
+        }
+
+        GUILayout.Space(5);
+        if (GUILayout.Button("+"))
+            propsChance.Add(new());
     }
 
     public void DisplayTileBase(ref TileBase tileBase, string name)

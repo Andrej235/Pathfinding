@@ -30,13 +30,17 @@ MonoBehaviour:
     value: {fileID: 11400000, guid: df9976932414b9944aef06c5e11ca0ed, type: 2}
   - chance: 0.15
     value: {fileID: 11400000, guid: 70c4ebdea7e1f6542ad295a2efa6aa7d, type: 2}
-  - chance: 0.05
-    value: {fileID: 11400000, guid: 916709442ed59dc4ba79ff6c1fe513a9, type: 2}
   roomTypesChance:
-  - chance: 0.5
+  - chance: 50
     value: 2
-  - chance: 0.1
+    specificRoomProps: []
+    editor_ArePropsShown: 0
+  - chance: 10
     value: 4
+    specificRoomProps:
+    - chance: 1
+      value: {fileID: 11400000, guid: 916709442ed59dc4ba79ff6c1fe513a9, type: 2}
+    editor_ArePropsShown: 1
   editor_AreTilesShown: 0
   editor_ArePropsShown: 1
   editor_AreRoomsShown: 1

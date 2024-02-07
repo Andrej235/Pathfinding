@@ -1,7 +1,10 @@
 using Assets.Code.Inventory;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using static CodeMonkey.Utils.UI_TextComplex;
 
 public class InventoryUI : MonoBehaviour
@@ -9,6 +12,8 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private GameObject UIInventory;
     private StorageItems storage;
     [SerializeField] private GameObject icon;
+    private TextMeshProUGUI text;
+    private GameObject[] newIcon = new GameObject[20];
 
     private void Start()
     {
@@ -24,10 +29,22 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
+
     private void OnSlotChanged(object sender, Storage.OnSlotChangedEventArgs e)
     {
-        Debug.Log(e.Amount);
-        Debug.Log(e.Item.Name);
-        Instantiate(icon, storage.slots[e.SlotIndex].transform, false);
+        text = storage.slots[e.SlotIndex].GetComponentInChildren<TextMeshProUGUI>();
+        text.text = e.Amount.ToString();
+
+        if(IsEmpty(e.SlotIndex))
+        {
+            newIcon[e.SlotIndex] = Instantiate(icon, storage.slots[e.SlotIndex].transform, false);
+            newIcon[e.SlotIndex].GetComponent<DragAndDrop>().i = e.SlotIndex;
+            newIcon[e.SlotIndex].transform.SetSiblingIndex(0);
+        }
+    }
+
+    private bool IsEmpty(int i)
+    {
+        return newIcon[i] == null;
     }
 }

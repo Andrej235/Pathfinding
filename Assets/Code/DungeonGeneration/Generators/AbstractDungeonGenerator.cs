@@ -43,10 +43,12 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
         pathfinding = new Pathfinding(grid);
 
         AsignRoomTypes();
-        PopulateRooms();
+        PlaceProps();
 
         foreach (var room in dungeonData.Rooms)
             room.UpdateTilesAccessibleFromPath();
+
+        SpawnEnemies();
     }
 
     private void AsignRoomTypes()
@@ -64,7 +66,8 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
         bossRoom.type = Room.RoomType.Boss;
     }
 
-    protected abstract void PopulateRooms();
+    protected abstract void PlaceProps();
+    protected abstract void SpawnEnemies();
 
     /// <summary>
     /// Generates a dungeon

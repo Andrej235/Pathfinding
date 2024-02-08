@@ -25,11 +25,33 @@ public class DungeonParametersSO : ScriptableObject
 
     public double chanceToSpawnAProp;
     public List<PropChance> propsChance;
+    public List<EnemyChance> enemiesChance;
     public List<RoomTypeChance> roomTypesChance;
 
     public bool editor_AreTilesShown;
     public bool editor_ArePropsShown;
+    public bool editor_AreEnemiesShown;
     public bool editor_AreRoomsShown;
+
+    [Serializable]
+    public class EnemyChance : IChance<GameObject>
+    {
+        [SerializeField] private float chance;
+        [SerializeField] private GameObject value;
+        [SerializeField] private Room.RoomType roomType;
+
+        public GameObject Value
+        {
+            get => value;
+            set => this.value = value;
+        }
+
+        public float Chance
+        {
+            get => chance;
+            set => chance = value;
+        }
+    }
 
     [Serializable]
     public class PropChance : IChance<PropSO>
@@ -120,6 +142,13 @@ public class DungeonParametersSOEditor : Editor
             DisplayPropChanceList(dungeonParameters.propsChance);
         }
 
+        dungeonParameters.editor_AreEnemiesShown = EditorGUILayout.Foldout(dungeonParameters.editor_AreEnemiesShown, "Enemies");
+        if (dungeonParameters.editor_AreEnemiesShown)
+        {
+            DisplayEnemyChanceList(dungeonParameters.enemiesChance);
+            GUILayout.Space(10);
+        }
+
         dungeonParameters.editor_AreRoomsShown = EditorGUILayout.Foldout(dungeonParameters.editor_AreRoomsShown, "Rooms");
         if (dungeonParameters.editor_AreRoomsShown)
         {
@@ -183,6 +212,31 @@ public class DungeonParametersSOEditor : Editor
         GUILayout.Space(5);
         if (GUILayout.Button("+"))
             propsChance.Add(new());
+    }
+
+    private void DisplayEnemyChanceList(List<EnemyChance> enemiesChance)
+    {
+        for (int i = 0; i < enemiesChance.Count; i++)
+        {
+            var enemyChance = enemiesChance[i];
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(new GUIContent("Enemy: ", "EnemiesO reference which will be used to spawn the Enemy with it's info"), GUILayout.Width(50));
+            enemyChance.Value = (GameObject)EditorGUILayout.ObjectField(enemyChance.Value, typeof(GameObject), false);
+
+            GUILayout.Label(new GUIContent("Chance: ", "Chance to spawn this specific Enemy when spawning a Enemy on a tile"), GUILayout.Width(50));
+            enemyChance.Chance = EditorGUILayout.FloatField(enemyChance.Chance, GUILayout.Width(50));
+
+            GUILayout.Space(3);
+
+            if (GUILayout.Button("-"))
+                enemiesChance.Remove(enemyChance);
+            GUILayout.EndHorizontal();
+        }
+
+        GUILayout.Space(5);
+        if (GUILayout.Button("+"))
+            enemiesChance.Add(new());
     }
 
     public void DisplayTileBase(ref TileBase tileBase, string name)

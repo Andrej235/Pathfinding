@@ -1,5 +1,6 @@
 using Assets.Code.DungeonGeneration.Models;
 using Assets.Code.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -51,7 +52,8 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         return floor;
     }
 
-    protected override void PopulateRooms()
+    #region Props
+    protected override void PlaceProps()
     {
         foreach (var room in dungeonData.Rooms)
             PopulateRoomWithProps(room);
@@ -180,7 +182,29 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
 
         return false;
     }
+    #endregion
 
+    #region Enemies
+    protected override void SpawnEnemies()
+    {
+        foreach (var room in dungeonData.Rooms.Where(x => x.type.HasFlag(Room.RoomType.Enemy)))
+            PopulateRoomWithEnemies(room);
+    }
+
+    private void PopulateRoomWithEnemies(Room room)
+    {
+        const int enemiesPerRoom = 10;
+        var enemyPositions = room.TilesAccessibleFromPath.OrderBy(x => Guid.NewGuid()).Take(enemiesPerRoom);
+
+        foreach (var enemyPosition in enemyPositions)
+        {
+            var enemyToSpawn = parameters.enemiesChance.GetByChance();
+            room.EnemyObjects.Add(Instantiate(enemyToSpawn, new Vector3(enemyPosition.x, enemyPosition.y) + Vector3.one * .5f, Quaternion.identity, transform));
+        }
+    }
+    #endregion
+
+    #region Corridor generation
     private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters)
     {
         HashSet<Vector2Int> corridors = new();
@@ -243,4 +267,5 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         }
         return closest;
     }
+    #endregion
 }

@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Chest
   m_EditorClassIdentifier: 
   propPrefab: {fileID: 1017149031533641568, guid: 31bc6f5293551f04eb808492049b6f9c, type: 3}
-  placementType: -1
+  placementType: 1
   placeAsAGroup: 0
   groupMinCount: 5
   groupMaxCount: 10
+  origin: 2

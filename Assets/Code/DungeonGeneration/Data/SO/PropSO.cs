@@ -14,12 +14,37 @@ public class PropSO : ScriptableObject
         Corner = 32,
     }
 
+    public enum PropOrigin
+    {
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight,
+    }
+
     public GameObject propPrefab;
     public PropPlacementType placementType;
 
     public bool placeAsAGroup;
     public int groupMinCount;
     public int groupMaxCount;
+
+    private Vector2Int propSize = Vector2Int.one;
+    public PropOrigin origin;
+
+    public Vector2Int PropSize
+    {
+        get => propSize;
+        set
+        {
+            if (value.x < 1)
+                propSize = new(propSize.x, value.y);
+            else if (value.y < 1)
+                propSize = new(value.x, propSize.y);
+            else
+                propSize = value;
+        }
+    }
 }
 
 [CustomEditor(typeof(PropSO))]
@@ -52,6 +77,11 @@ public class PropSOEditor : Editor
             prop.groupMaxCount = EditorGUILayout.IntField(prop.groupMaxCount);
             GUILayout.EndHorizontal();
         }
+
+        prop.PropSize = EditorGUILayout.Vector2IntField("Size: ", prop.PropSize);
+
+        if (prop.PropSize.x > 1 || prop.PropSize.y > 1)
+            prop.origin = (PropSO.PropOrigin)EditorGUILayout.EnumPopup(prop.origin);
 
         if (EditorGUI.EndChangeCheck())
         {

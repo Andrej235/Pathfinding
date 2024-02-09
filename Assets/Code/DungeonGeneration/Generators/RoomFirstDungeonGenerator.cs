@@ -1,9 +1,7 @@
 using Assets.Code.DungeonGeneration.Models;
 using Assets.Code.Utility;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -89,9 +87,7 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
             if (RNG.Chance(parameters.chanceToSpawnAProp / 100f))
             {
                 var prop = possibleProps.GetByChance();
-
-                room.PropPositions.Add(tile);
-                room.PropObjects.Add(Instantiate(prop.propPrefab, new Vector3(tile.x, tile.y) + Vector3.one * .5f, Quaternion.identity, transform));
+                PlaceProp(room, tile, prop);
 
                 if (prop.placeAsAGroup)
                 {
@@ -111,7 +107,7 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
                             var direction = Directions.RandomCardinalDirection;
                             var neighbourTile = currentTile + direction;
 
-                            if (TryPlaceProp(room, neighbourTile, prop.placementType))
+                            if (TryPlaceProp(room, neighbourTile, prop))
                             {
                                 currentTile = neighbourTile;
                                 groupMemberPositions.Add(neighbourTile);
@@ -137,48 +133,87 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         }
     }
 
-    private bool TryPlaceProp(Room room, Vector2Int tileToPlaceOn, PropSO.PropPlacementType placementType)
+    private void PlaceProp(Room room, Vector2Int originTile, PropSO prop)
+    {
+        if (!TryPlaceProp(room, originTile, prop))
+            return;
+
+        room.PropObjects.Add(Instantiate(prop.propPrefab, new Vector3(originTile.x + prop.PropSize.x * .5f, originTile.y + prop.PropSize.y * .5f), Quaternion.identity, transform));
+
+        switch (prop.origin)
+        {
+            case PropSO.PropOrigin.TopLeft:
+                for (int x = 0; x < prop.PropSize.x; x++)
+                    for (int y = 0; y < prop.PropSize.y; y++)
+                        room.PropPositions.Add(originTile + new Vector2Int(x, -y));
+                break;
+
+            case PropSO.PropOrigin.TopRight:
+                for (int x = 0; x < prop.PropSize.x; x++)
+                    for (int y = 0; y < prop.PropSize.y; y++)
+                        room.PropPositions.Add(originTile + new Vector2Int(-x, -y));
+                break;
+
+            case PropSO.PropOrigin.BottomLeft:
+                for (int x = 0; x < prop.PropSize.x; x++)
+                    for (int y = 0; y < prop.PropSize.y; y++)
+                        room.PropPositions.Add(originTile + new Vector2Int(x, y));
+
+                break;
+
+            case PropSO.PropOrigin.BottomRight:
+                for (int x = 0; x < prop.PropSize.x; x++)
+                    for (int y = 0; y < prop.PropSize.y; y++)
+                        room.PropPositions.Add(originTile + new Vector2Int(-x, y));
+                break;
+
+            default:
+                break;
+        }
+
+    }
+
+    private bool TryPlaceProp(Room room, Vector2Int tileToPlaceOn, PropSO prop)
     {
         if (room.PropPositions.Contains(tileToPlaceOn) || dungeonData.Path.Contains(tileToPlaceOn))
             return false;
 
-        //TODO: Add support for bigger props
-        //Go through each propplacementtype and check if the tileToPlaceOn is a part of a collection prop can be placed on
+        PropSO.PropPlacementType placementType = prop.placementType;
 
-        if (placementType.HasFlag(PropSO.PropPlacementType.Center))
-        {
-            if (room.InnerTiles.Contains(tileToPlaceOn))
-                return true;
-        }
+        //Go through each PropSO.PropPlacementType and check if the tileToPlaceOn is a part of a collection which given prop can be placed on
+        return ((placementType.HasFlag(PropSO.PropPlacementType.Center) && room.InnerTiles.Contains(tileToPlaceOn))
+            || (placementType.HasFlag(PropSO.PropPlacementType.NextToTopWall) && room.TilesNextToTopWall.Contains(tileToPlaceOn))
+            || (placementType.HasFlag(PropSO.PropPlacementType.NextToRightWall) && room.TilesNextToRightWall.Contains(tileToPlaceOn))
+            || (placementType.HasFlag(PropSO.PropPlacementType.NextToBottomWall) && room.TilesNextToBottomWall.Contains(tileToPlaceOn))
+            || (placementType.HasFlag(PropSO.PropPlacementType.NextToLeftWall) && room.TilesNextToLeftWall.Contains(tileToPlaceOn))
+            || (placementType.HasFlag(PropSO.PropPlacementType.Corner) && room.CornerTiles.Contains(tileToPlaceOn)))
+            && TryPlacePropOnMultipleTiles(room, tileToPlaceOn, prop);
+    }
 
-        if (placementType.HasFlag(PropSO.PropPlacementType.NextToTopWall))
-        {
-            if (room.TilesNextToTopWall.Contains(tileToPlaceOn))
-                return true;
-        }
+    private bool TryPlacePropOnMultipleTiles(Room room, Vector2Int originTile, PropSO prop)
+    {
+        if (prop.PropSize == Vector2Int.one)
+            return true;
 
-        if (placementType.HasFlag(PropSO.PropPlacementType.NextToRightWall))
-        {
-            if (room.TilesNextToRightWall.Contains(tileToPlaceOn))
-                return true;
-        }
+        var availableTiles = room.Floor.Except(room.PropPositions).Except(dungeonData.Path);
 
-        if (placementType.HasFlag(PropSO.PropPlacementType.NextToBottomWall))
+        switch (prop.origin)
         {
-            if (room.TilesNextToBottomWall.Contains(tileToPlaceOn))
-                return true;
-        }
+            case PropSO.PropOrigin.TopLeft:
+                break;
+            case PropSO.PropOrigin.TopRight:
+                break;
+            case PropSO.PropOrigin.BottomLeft:
+                for (int i = 0; i < prop.PropSize.x; i++)
+                    for (int j = 0; j < prop.PropSize.y; j++)
+                        if (!availableTiles.Contains(originTile + new Vector2Int(i, j)))
+                            return false;
 
-        if (placementType.HasFlag(PropSO.PropPlacementType.NextToLeftWall))
-        {
-            if (room.TilesNextToLeftWall.Contains(tileToPlaceOn))
                 return true;
-        }
-
-        if (placementType.HasFlag(PropSO.PropPlacementType.Corner))
-        {
-            if (room.CornerTiles.Contains(tileToPlaceOn))
-                return true;
+            case PropSO.PropOrigin.BottomRight:
+                break;
+            default:
+                break;
         }
 
         return false;

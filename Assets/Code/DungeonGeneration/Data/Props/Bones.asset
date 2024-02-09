@@ -17,3 +17,4 @@ MonoBehaviour:
   placeAsAGroup: 1
   groupMinCount: 5
   groupMaxCount: 10
+  origin: 0

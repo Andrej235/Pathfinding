@@ -55,15 +55,14 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
     {
         startRoom = dungeonData.Rooms.GetRandomElement();
         startRoom.type = Room.RoomType.Start;
-
         var rooms = dungeonData.Rooms.OrderBy(x => pathfinding.FindPath(startRoom.RoomCenter, x.RoomCenter).Count);
-        foreach (var room in rooms)
-            room.type = parameters.roomTypesChance.GetByChance();
-        //room.type = (Room.RoomType)Enum.GetValues(typeof(Room.RoomType)).GetRandomElement();
 
         //The furthest room is supposed to be the boss room
         bossRoom = rooms.Last();
         bossRoom.type = Room.RoomType.Boss;
+
+        foreach (var room in rooms.Except(new List<Room>() { startRoom, bossRoom }))
+            room.type = parameters.roomTypesChance.GetByChance();
     }
 
     protected abstract void PlaceProps();

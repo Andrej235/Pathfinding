@@ -3,6 +3,7 @@ using Assets.Code.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -187,18 +188,26 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
     #region Enemies
     protected override void SpawnEnemies()
     {
-        foreach (var room in dungeonData.Rooms.Where(x => x.type.HasFlag(Room.RoomType.Enemy)))
+        foreach (var room in dungeonData.Rooms)
             PopulateRoomWithEnemies(room);
     }
 
     private void PopulateRoomWithEnemies(Room room)
     {
-        const int enemiesPerRoom = 10;
-        var enemyPositions = room.TilesAccessibleFromPath.OrderBy(x => Guid.NewGuid()).Take(enemiesPerRoom);
+        var roomParameters = parameters.roomTypesChance.FirstOrDefault(x => x.Value == room.type);
+        if (roomParameters is null)
+            return;
+
+        var possibleEnemies = parameters.enemiesChance.Where(x => room.type.HasFlag(x.RoomType)).Union(roomParameters.SpecificRoomEnemies);
+        if (!possibleEnemies.Any())
+            return;
+
+        int enemiesPerRoom = RNG.Get(roomParameters.MinimumNumberOfEnemies, roomParameters.MaximumNumberOfEnemies);
+        var enemyPositions = room.TilesAccessibleFromPath.Shuffle().Take(enemiesPerRoom);
 
         foreach (var enemyPosition in enemyPositions)
         {
-            var enemyToSpawn = parameters.enemiesChance.GetByChance();
+            var enemyToSpawn = possibleEnemies.GetByChance();
             room.EnemyObjects.Add(Instantiate(enemyToSpawn, new Vector3(enemyPosition.x, enemyPosition.y) + Vector3.one * .5f, Quaternion.identity, transform));
         }
     }

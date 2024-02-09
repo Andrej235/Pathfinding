@@ -31,24 +31,30 @@ MonoBehaviour:
   - chance: 0.15
     value: {fileID: 11400000, guid: 70c4ebdea7e1f6542ad295a2efa6aa7d, type: 2}
   enemiesChance:
-  - chance: 10
+  - chance: 50
     value: {fileID: 3235129725535781157, guid: 00b801775a06d9c4489e6ac5fb7e6c76, type: 3}
-    roomType: 0
-  - chance: 1
-    value: {fileID: 313995775322962577, guid: 4bf402106f6fe6b4ba3fc54416f34437, type: 3}
-    roomType: 0
+    roomType: 2
   roomTypesChance:
   - chance: 50
     value: 2
     specificRoomProps: []
+    specificRoomEnemies: []
     editor_ArePropsShown: 0
-  - chance: 10
-    value: 4
+    editor_AreEnemiesShown: 0
+    editor_IsNotCollapsed: 0
+  - chance: 5
+    value: 10
     specificRoomProps:
     - chance: 1
       value: {fileID: 11400000, guid: 916709442ed59dc4ba79ff6c1fe513a9, type: 2}
+    specificRoomEnemies:
+    - chance: 25
+      value: {fileID: 313995775322962577, guid: 4bf402106f6fe6b4ba3fc54416f34437, type: 3}
+      roomType: 0
     editor_ArePropsShown: 0
+    editor_AreEnemiesShown: 0
+    editor_IsNotCollapsed: 0
   editor_AreTilesShown: 0
   editor_ArePropsShown: 1
   editor_AreEnemiesShown: 1
-  editor_AreRoomsShown: 0
+  editor_AreRoomsShown: 1

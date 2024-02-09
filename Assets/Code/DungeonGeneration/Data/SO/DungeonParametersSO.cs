@@ -2,6 +2,7 @@ using Assets.Code.DungeonGeneration.Models;
 using Assets.Code.Utility;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -26,7 +27,7 @@ public class DungeonParametersSO : ScriptableObject
     public double chanceToSpawnAProp;
     public List<PropChance> propsChance;
     public List<EnemyChance> enemiesChance;
-    public List<RoomTypeChance> roomTypesChance;
+    public List<RoomParameters> roomTypesChance;
 
     public bool editor_AreTilesShown;
     public bool editor_ArePropsShown;
@@ -51,6 +52,12 @@ public class DungeonParametersSO : ScriptableObject
             get => chance;
             set => chance = value;
         }
+
+        public Room.RoomType RoomType
+        {
+            get => roomType;
+            set => roomType = value;
+        }
     }
 
     [Serializable]
@@ -73,11 +80,16 @@ public class DungeonParametersSO : ScriptableObject
     }
 
     [Serializable]
-    public class RoomTypeChance : IChance<Room.RoomType>
+    public class RoomParameters : IChance<Room.RoomType>
     {
         [SerializeField] private float chance;
         [SerializeField] private Room.RoomType value;
+
+        private int minimumNumberOfEnemies;
+        private int maximumNumberOfEnemies;
+
         [SerializeField] private List<PropChance> specificRoomProps;
+        [SerializeField] private List<EnemyChance> specificRoomEnemies;
 
         public Room.RoomType Value
         {
@@ -97,7 +109,39 @@ public class DungeonParametersSO : ScriptableObject
             set => specificRoomProps = value;
         }
 
+        public int MinimumNumberOfEnemies
+        {
+            get => minimumNumberOfEnemies;
+            set
+            {
+                //if (value > MaximumNumberOfEnemies)
+                //MaximumNumberOfEnemies = value;
+
+                minimumNumberOfEnemies = value;
+            }
+        }
+
+        public int MaximumNumberOfEnemies
+        {
+            get => maximumNumberOfEnemies;
+            set
+            {
+                //if (value < MinimumNumberOfEnemies)
+                //MinimumNumberOfEnemies = value;
+
+                maximumNumberOfEnemies = value;
+            }
+        }
+
+        public List<EnemyChance> SpecificRoomEnemies
+        {
+            get => specificRoomEnemies;
+            set => specificRoomEnemies = value;
+        }
+
         public bool editor_ArePropsShown;
+        public bool editor_AreEnemiesShown;
+        public bool editor_IsNotCollapsed;
     }
 }
 
@@ -152,9 +196,17 @@ public class DungeonParametersSOEditor : Editor
         dungeonParameters.editor_AreRoomsShown = EditorGUILayout.Foldout(dungeonParameters.editor_AreRoomsShown, "Rooms");
         if (dungeonParameters.editor_AreRoomsShown)
         {
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(10);
+            GUILayout.BeginVertical();
+
             for (int i = 0; i < dungeonParameters.roomTypesChance.Count; i++)
             {
                 var roomTypeChance = dungeonParameters.roomTypesChance[i];
+                roomTypeChance.editor_IsNotCollapsed = EditorGUILayout.Foldout(roomTypeChance.editor_IsNotCollapsed, roomTypeChance.Value.ToFlagString(new List<Room.RoomType> { Room.RoomType.None, Room.RoomType.Everything }));
+
+                if (!roomTypeChance.editor_IsNotCollapsed)
+                    continue;
 
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(new GUIContent("Room: "), GUILayout.Width(50));
@@ -169,12 +221,26 @@ public class DungeonParametersSOEditor : Editor
                     dungeonParameters.roomTypesChance.Remove(roomTypeChance);
                 GUILayout.EndHorizontal();
 
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Enemies: ");
+                roomTypeChance.MinimumNumberOfEnemies = EditorGUILayout.IntField(roomTypeChance.MinimumNumberOfEnemies);
+                GUILayout.Label(" - ");
+                roomTypeChance.MaximumNumberOfEnemies = EditorGUILayout.IntField(roomTypeChance.MaximumNumberOfEnemies);
+                GUILayout.EndHorizontal();
+
                 roomTypeChance.editor_ArePropsShown = EditorGUILayout.Foldout(roomTypeChance.editor_ArePropsShown, "Specific room props: ");
                 if (roomTypeChance.editor_ArePropsShown)
                     DisplayPropChanceList(roomTypeChance.SpecificRoomPropsChance);
 
-                GUILayout.Space(7);
+                roomTypeChance.editor_AreEnemiesShown = EditorGUILayout.Foldout(roomTypeChance.editor_AreEnemiesShown, "Specific room enemies: ");
+                if (roomTypeChance.editor_AreEnemiesShown)
+                    DisplayEnemyChanceList(roomTypeChance.SpecificRoomEnemies, false);
+
+                GUILayout.Space(20);
             }
+
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
 
             GUILayout.Space(5);
             if (GUILayout.Button("+"))
@@ -214,17 +280,17 @@ public class DungeonParametersSOEditor : Editor
             propsChance.Add(new());
     }
 
-    private void DisplayEnemyChanceList(List<EnemyChance> enemiesChance)
+    private void DisplayEnemyChanceList(List<EnemyChance> enemiesChance, bool includeRoomType = true)
     {
         for (int i = 0; i < enemiesChance.Count; i++)
         {
             var enemyChance = enemiesChance[i];
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(new GUIContent("Enemy: ", "EnemiesO reference which will be used to spawn the Enemy with it's info"), GUILayout.Width(50));
+            GUILayout.Label(new GUIContent("Enemy: ", ""), GUILayout.Width(50));
             enemyChance.Value = (GameObject)EditorGUILayout.ObjectField(enemyChance.Value, typeof(GameObject), false);
 
-            GUILayout.Label(new GUIContent("Chance: ", "Chance to spawn this specific Enemy when spawning a Enemy on a tile"), GUILayout.Width(50));
+            GUILayout.Label(new GUIContent("Chance: ", ""), GUILayout.Width(50));
             enemyChance.Chance = EditorGUILayout.FloatField(enemyChance.Chance, GUILayout.Width(50));
 
             GUILayout.Space(3);
@@ -232,6 +298,18 @@ public class DungeonParametersSOEditor : Editor
             if (GUILayout.Button("-"))
                 enemiesChance.Remove(enemyChance);
             GUILayout.EndHorizontal();
+
+            if (includeRoomType)
+            {
+                GUILayout.Space(2);
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(new GUIContent("Room type: ", "Given enemy can only spawn in rooms with the following type"), GUILayout.Width(75));
+                enemyChance.RoomType = (Room.RoomType)EditorGUILayout.EnumPopup(enemyChance.RoomType);
+                GUILayout.EndHorizontal();
+            }
+
+            GUILayout.Space(5);
         }
 
         GUILayout.Space(5);
@@ -239,19 +317,11 @@ public class DungeonParametersSOEditor : Editor
             enemiesChance.Add(new());
     }
 
-    public void DisplayTileBase(ref TileBase tileBase, string name)
+    private void DisplayTileBase(ref TileBase tileBase, string name)
     {
         GUILayout.BeginHorizontal();
         GUILayout.Label($"{name}:", GUILayout.Width(150));
         tileBase = (TileBase)EditorGUILayout.ObjectField(tileBase, typeof(TileBase), false);
-        GUILayout.EndHorizontal();
-    }
-
-    public void DisplayTilemap(ref Tilemap tilemap, string name)
-    {
-        GUILayout.BeginHorizontal();
-        GUILayout.Label($"{name}:", GUILayout.Width(150));
-        tilemap = (Tilemap)EditorGUILayout.ObjectField(tilemap, typeof(Tilemap), true);
         GUILayout.EndHorizontal();
     }
 }

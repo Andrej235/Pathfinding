@@ -6,13 +6,15 @@ namespace Assets.Code.DungeonGeneration.Models
 {
     public class Room
     {
-        public enum RoomType
+        public enum RoomType : uint
         {
             None = 0,
-            Start = 1,
-            Enemy = 2,
-            Treassure = 4,
-            Boss = 8,
+            Start = 1 << 0,
+            Enemy = 1 << 1,
+            Treassure = 1 << 2,
+            Special = 1 << 3,
+            Boss = 1 << 4,
+            Everything = uint.MaxValue,
         }
         public RoomType type;
 
@@ -91,6 +93,6 @@ namespace Assets.Code.DungeonGeneration.Models
             _ => new(),
         };
 
-        public void UpdateTilesAccessibleFromPath() => TilesAccessibleFromPath = PathfindingAlgorithms.GetReachableBFS(Vector2Int.RoundToInt(RoomCenter), Floor, PropPositions);
+        public void UpdateTilesAccessibleFromPath() => TilesAccessibleFromPath = PathfindingAlgorithms.GetReachableBFS(Vector2Int.RoundToInt(RoomCenter), InnerTiles, PropPositions);
     }
 }

@@ -44,5 +44,7 @@ namespace Assets.Code.Utility
 
             return possibleValues.Last().Value;
         }
+
+        public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> values) => values.OrderBy(x => Guid.NewGuid());
     }
 }

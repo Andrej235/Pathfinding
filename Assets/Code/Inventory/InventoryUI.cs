@@ -33,7 +33,14 @@ public class InventoryUI : MonoBehaviour
     private void OnSlotChanged(object sender, Storage.OnSlotChangedEventArgs e)
     {
         text = storage.slots[e.SlotIndex].GetComponentInChildren<TextMeshProUGUI>();
-        text.text = e.Amount.ToString();
+        if(e.Amount > 0)
+        {
+            text.text = e.Amount.ToString();
+        }
+        else
+        {
+            text.text = "";
+        }
 
         if(IsEmpty(e.SlotIndex))
         {

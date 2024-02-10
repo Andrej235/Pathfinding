@@ -217,14 +217,14 @@ namespace Assets.Code.Inventory
         /// Decreases amount of items inside a slot with the given index
         /// </summary>
         /// <returns>Number of items taken, -1 if index was outside of bounds or item in the slot is null</returns>
-        public int TakeFromSlot(int index, int amount)
+        public (IItem? item, int amount) TakeFromSlot(int index, int amount)
         {
             if (index < 0 || index >= storage.Length)
-                return -1;
+                return new(null, -1);
 
             var slot = storage[index];
             if (slot.Item == null)
-                return -1;
+                return new(null, -1);
 
 
             int itemsTaken;
@@ -239,7 +239,7 @@ namespace Assets.Code.Inventory
                 itemsTaken = amount;
                 slot.Amount -= amount;
             }
-            return itemsTaken;
+            return new(slot.Item, itemsTaken);
         }
 
         /// <summary>

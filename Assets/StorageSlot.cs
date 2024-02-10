@@ -19,7 +19,10 @@ public class StorageSlot : MonoBehaviour, IDropHandler
         GameObject dropped = eventData.pointerDrag;
         DragAndDrop draggableItem = dropped.GetComponent<DragAndDrop>();
         draggableItem.parentAfterDrag = transform;
-        InventoryManager.Inventory.Storage.Swap(i, draggableItem.i);
-        Destroy(dropped);
+        if (i != draggableItem.i)
+        {
+            InventoryManager.Inventory.Storage.Swap(i, draggableItem.i);
+            Destroy(dropped);
+        }
     }
 }

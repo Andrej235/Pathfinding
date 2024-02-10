@@ -34,4 +34,7 @@ public static class Directions
 
     public static Vector2Int GetRandomCardinalDirection() => cardinalDirectionsList[Random.Range(0, cardinalDirectionsList.Count)];
     public static Vector2Int RandomCardinalDirection => GetRandomCardinalDirection();
+
+    public static Vector2Int GetRandomDirection() => eightDirectionsList[Random.Range(0, eightDirectionsList.Count)];
+    public static Vector2Int RandomDirection => GetRandomDirection();
 }

@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class WallGenerator
 {
-    public static IEnumerable<Vector2Int> CreateWalls(HashSet<Vector2Int> floorPositions, TilemapVisualizer tilemapVisualizer)
+    public static IEnumerable<Vector2Int> CreateWalls(HashSet<Vector2Int> floorPositions, DungeonTilemapVisualizer tilemapVisualizer)
     {
         //Positions which represent holes in the floorPositions
         HashSet<Vector2Int> missingFloorPositions = new();
@@ -21,7 +21,7 @@ public static class WallGenerator
         return basicWallPositions.Union(cornerWallPositions);
     }
 
-    private static void CreateBasicWall(TilemapVisualizer tilemapVisualizer, HashSet<Vector2Int> basicWallPositions, HashSet<Vector2Int> floorPositions)
+    private static void CreateBasicWall(DungeonTilemapVisualizer tilemapVisualizer, HashSet<Vector2Int> basicWallPositions, HashSet<Vector2Int> floorPositions)
     {
         foreach (var position in basicWallPositions)
         {
@@ -33,7 +33,7 @@ public static class WallGenerator
         }
     }
 
-    private static void CreateCornerWalls(TilemapVisualizer tilemapVisualizer, HashSet<Vector2Int> cornerWallPositions, HashSet<Vector2Int> floorPositions)
+    private static void CreateCornerWalls(DungeonTilemapVisualizer tilemapVisualizer, HashSet<Vector2Int> cornerWallPositions, HashSet<Vector2Int> floorPositions)
     {
         foreach (var position in cornerWallPositions)
         {

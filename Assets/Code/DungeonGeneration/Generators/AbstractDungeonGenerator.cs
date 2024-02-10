@@ -14,7 +14,7 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
     [SerializeField] private Tilemap? floorTilemap;
     [SerializeField] private Tilemap? wallTilemap;
 
-    protected TilemapVisualizer? tileMapVisualizer;
+    protected DungeonTilemapVisualizer? tileMapVisualizer;
     [SerializeField] protected DungeonParametersSO? parameters;
     [SerializeField] protected Vector2Int startPosition;
     private Grid<PathNode>? grid;

@@ -1,7 +1,9 @@
-﻿namespace Assets.Code.Items.Interfaces
+﻿using Assets.Code.Entity.Effects.Buffs;
+
+namespace Assets.Code.Items.Interfaces
 {
     public interface IPotion : IConsumable
     {
-        IEffect Effect { get; protected set; }
+        ITemporaryBuff Buff { get; }
     }
 }

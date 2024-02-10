@@ -61,7 +61,7 @@ MonoBehaviour:
     maximumNumberOfEnemies: 20
     specificRoomProps: []
     specificRoomEnemies: []
-    editor_ArePropsShown: 1
+    editor_ArePropsShown: 0
     editor_AreEnemiesShown: 0
     editor_IsNotCollapsed: 0
   - chance: 10
@@ -76,9 +76,9 @@ MonoBehaviour:
       value: {fileID: 313995775322962577, guid: 4bf402106f6fe6b4ba3fc54416f34437, type: 3}
       roomType: 0
     editor_ArePropsShown: 1
-    editor_AreEnemiesShown: 0
-    editor_IsNotCollapsed: 1
+    editor_AreEnemiesShown: 1
+    editor_IsNotCollapsed: 0
   editor_AreTilesShown: 0
   editor_ArePropsShown: 1
-  editor_AreEnemiesShown: 0
-  editor_AreRoomsShown: 1
+  editor_AreEnemiesShown: 1
+  editor_AreRoomsShown: 0

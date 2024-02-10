@@ -1,9 +1,11 @@
-﻿namespace Assets.Code.Items.Interfaces
+﻿using Assets.Code.Entity.Effects.Debuffs;
+
+namespace Assets.Code.Items.Interfaces
 {
 #nullable enable
     public interface IArrow : IItem
     {
-        float Damage { get; protected set; }
-        IEffect? Effect { get; protected set; }
+        float Damage { get; }
+        IDebuff? Debuff { get; }
     }
 }

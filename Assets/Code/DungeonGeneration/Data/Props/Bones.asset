@@ -17,4 +17,5 @@ MonoBehaviour:
   placeAsAGroup: 1
   groupMinCount: 5
   groupMaxCount: 10
+  propSize: {x: 1, y: 1}
   origin: 0

@@ -82,7 +82,7 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
 
         foreach (var tile in room.GetTiles(propPlacementType).Except(dungeonData.Path))
         {
-            if (dungeonData.Path.Contains(tile))
+            if (room.PropPositions.Contains(tile))
                 continue;
 
             if (RNG.Chance(parameters.chanceToSpawnAProp / 100f))
@@ -105,18 +105,15 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
                         bool foundTile = false;
                         for (int j = 0; j < RNG.Get(1, 4); j++)
                         {
-                            var direction = Directions.RandomCardinalDirection;
+                            var direction = Directions.RandomCardinalDirection * Math.Min(prop.PropSize.x, prop.PropSize.y);
                             var neighbourTile = currentTile + direction;
 
-                            if (TryPlaceProp(room, neighbourTile, prop))
+                            var success = PlaceProp(room, neighbourTile, prop);
+                            if (success)
                             {
+                                foundTile = true;
                                 currentTile = neighbourTile;
                                 groupMemberPositions.Add(neighbourTile);
-
-                                room.PropPositions.Add(currentTile);
-                                room.PropObjects.Add(Instantiate(prop.propPrefab, new Vector3(currentTile.x, currentTile.y) + Vector3.one * .5f, Quaternion.identity, transform));
-
-                                foundTile = true;
                                 break;
                             }
                         }
@@ -134,15 +131,16 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         }
     }
 
-    private void PlaceProp(Room room, Vector2Int originTile, PropSO prop)
+    private bool PlaceProp(Room room, Vector2Int originTile, PropSO prop)
     {
         if (!TryPlaceProp(room, originTile, prop))
-            return;
+            return false;
 
         if (prop.PropSize == Vector2Int.one)
         {
-            room.PropObjects.Add(Instantiate(prop.propPrefab, (Vector3Int)originTile, Quaternion.identity, transform));
-            return;
+            room.PropPositions.Add(originTile);
+            room.PropObjects.Add(Instantiate(prop.propPrefab, new Vector3(originTile.x + .5f, originTile.y + .5f), Quaternion.identity, transform));
+            return true;
         }
         Vector3 offset;
 
@@ -185,6 +183,7 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         }
 
         room.PropObjects.Add(Instantiate(prop.propPrefab, (Vector3Int)originTile + offset, Quaternion.identity, transform));
+        return true;
     }
 
     private bool TryPlaceProp(Room room, Vector2Int tileToPlaceOn, PropSO prop)

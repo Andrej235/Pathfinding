@@ -26,7 +26,9 @@ MonoBehaviour:
   wallDiagonalCornerUpLeft: {fileID: 11400000, guid: 990709a76d4f9124db8ca4026e79a932, type: 2}
   chanceToSpawnAProp: 1
   propsChance:
-  - chance: 0
+  - chance: 100
+    value: {fileID: 11400000, guid: df9976932414b9944aef06c5e11ca0ed, type: 2}
+  - chance: 10
     value: {fileID: 11400000, guid: 916709442ed59dc4ba79ff6c1fe513a9, type: 2}
   enemiesChance:
   - chance: 50

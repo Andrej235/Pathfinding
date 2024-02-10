@@ -7,7 +7,7 @@ namespace Assets.Code.PathFinding
 {
     public static class DungeonGridGenerator
     {
-        public static Grid<PathNode> GeneratePathNodeGrid(IEnumerable<Vector2Int> wallPositions)
+        public static Grid<PathNode> GeneratePathNodeGrid(this IEnumerable<Vector2Int> wallPositions)
         {
             if (wallPositions is null || !wallPositions.Any())
                 return new(0, 0, 0);

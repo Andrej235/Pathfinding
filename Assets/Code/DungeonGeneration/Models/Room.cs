@@ -6,15 +6,17 @@ namespace Assets.Code.DungeonGeneration.Models
 {
     public class Room
     {
-        public enum RoomType
+        public enum RoomType : uint
         {
             None = 0,
-            Start = 1,
-            Enemy = 2,
-            Treassure = 4,
-            Boss = 8,
+            Start = 1 << 0,
+            Enemy = 1 << 1,
+            Treassure = 1 << 2,
+            Special = 1 << 3,
+            Boss = 1 << 4,
+            Everything = uint.MaxValue,
         }
-        public RoomType type;
+        public RoomType Type { get; private set; }
 
         public Room(HashSet<Vector2Int> floor, Vector2 roomCenter)
         {
@@ -60,7 +62,7 @@ namespace Assets.Code.DungeonGeneration.Models
             TilesNextToBottomWall.ExceptWith(CornerTiles);
             TilesNextToLeftWall.ExceptWith(CornerTiles);
 
-            type = RoomType.None;
+            Type = RoomType.None;
         }
 
         public Vector2 RoomCenter { get; }
@@ -80,9 +82,20 @@ namespace Assets.Code.DungeonGeneration.Models
 
         public HashSet<Vector2Int> TilesAccessibleFromPath { get; set; } = new();
 
+        private DungeonParametersSO.RoomParameters parameters;
+        public DungeonParametersSO.RoomParameters Parameters
+        {
+            get => parameters;
+            set
+            {
+                parameters = value;
+                Type = value.Type;
+            }
+        }
+
         public HashSet<Vector2Int> GetTiles(PropSO.PropPlacementType propPlacementType) => propPlacementType switch
         {
-            PropSO.PropPlacementType.Center => InnerTiles,
+            PropSO.PropPlacementType.Inner => InnerTiles,
             PropSO.PropPlacementType.NextToTopWall => TilesNextToTopWall,
             PropSO.PropPlacementType.NextToRightWall => TilesNextToRightWall,
             PropSO.PropPlacementType.NextToBottomWall => TilesNextToBottomWall,
@@ -91,6 +104,6 @@ namespace Assets.Code.DungeonGeneration.Models
             _ => new(),
         };
 
-        public void UpdateTilesAccessibleFromPath() => TilesAccessibleFromPath = PathfindingAlgorithms.GetReachableBFS(Vector2Int.RoundToInt(RoomCenter), Floor, PropPositions);
+        public void UpdateTilesAccessibleFromPath() => TilesAccessibleFromPath = PathfindingAlgorithms.GetReachableBFS(Vector2Int.RoundToInt(RoomCenter), InnerTiles, PropPositions);
     }
 }

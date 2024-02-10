@@ -17,3 +17,5 @@ MonoBehaviour:
   placeAsAGroup: 1
   groupMinCount: 1
   groupMaxCount: 7
+  propSize: {x: 1, y: 1}
+  origin: 0

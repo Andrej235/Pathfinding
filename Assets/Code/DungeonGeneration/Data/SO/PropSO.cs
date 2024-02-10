@@ -6,12 +6,20 @@ public class PropSO : ScriptableObject
 {
     public enum PropPlacementType
     {
-        Center = 1,
-        NextToTopWall = 2,
-        NextToRightWall = 4,
-        NextToBottomWall = 8,
-        NextToLeftWall = 16,
-        Corner = 32,
+        Inner = 1 << 0,
+        NextToTopWall = 1 << 1,
+        NextToRightWall = 1 << 2,
+        NextToBottomWall = 1 << 3,
+        NextToLeftWall = 1 << 4,
+        Corner = 1 << 5,
+    }
+
+    public enum PropOrigin
+    {
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight,
     }
 
     public GameObject propPrefab;
@@ -20,6 +28,23 @@ public class PropSO : ScriptableObject
     public bool placeAsAGroup;
     public int groupMinCount;
     public int groupMaxCount;
+
+    [SerializeField] private Vector2Int propSize = Vector2Int.one;
+    public PropOrigin origin;
+
+    public Vector2Int PropSize
+    {
+        get => propSize;
+        set
+        {
+            if (value.x < 1)
+                propSize = new(propSize.x, value.y);
+            else if (value.y < 1)
+                propSize = new(value.x, propSize.y);
+            else
+                propSize = value;
+        }
+    }
 }
 
 [CustomEditor(typeof(PropSO))]
@@ -52,6 +77,11 @@ public class PropSOEditor : Editor
             prop.groupMaxCount = EditorGUILayout.IntField(prop.groupMaxCount);
             GUILayout.EndHorizontal();
         }
+
+        prop.PropSize = EditorGUILayout.Vector2IntField("Size: ", prop.PropSize);
+
+        if (prop.PropSize.x > 1 || prop.PropSize.y > 1)
+            prop.origin = (PropSO.PropOrigin)EditorGUILayout.EnumPopup(prop.origin);
 
         if (EditorGUI.EndChangeCheck())
         {

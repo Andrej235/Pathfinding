@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Assets.Code.DungeonGeneration.Models;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -7,7 +8,9 @@ public class SimpleRandomWalkDungeonGenerator : AbstractDungeonGenerator
 {
     [SerializeField] protected RandomWalkParametersSO randomWalkRoomGenerationParameters;
 
-    protected override void PopulateRooms() { }
+    protected override void PlaceProps(Room room) { }
+
+    protected override void SpawnEnemies(Room room) { }
 
     protected override IEnumerable<Vector2Int> RunProceduralGeneration()
     {

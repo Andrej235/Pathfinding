@@ -1,5 +1,6 @@
 using Assets.Code.DungeonGeneration.Models;
 using Assets.Code.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -138,39 +139,52 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         if (!TryPlaceProp(room, originTile, prop))
             return;
 
-        room.PropObjects.Add(Instantiate(prop.propPrefab, new Vector3(originTile.x + prop.PropSize.x * .5f, originTile.y + prop.PropSize.y * .5f), Quaternion.identity, transform));
+        if (prop.PropSize == Vector2Int.one)
+        {
+            room.PropObjects.Add(Instantiate(prop.propPrefab, (Vector3Int)originTile, Quaternion.identity, transform));
+            return;
+        }
+        Vector3 offset;
 
         switch (prop.origin)
         {
             case PropSO.PropOrigin.TopLeft:
+                offset = new Vector3(prop.PropSize.x * .5f, 0);
+
                 for (int x = 0; x < prop.PropSize.x; x++)
                     for (int y = 0; y < prop.PropSize.y; y++)
                         room.PropPositions.Add(originTile + new Vector2Int(x, -y));
                 break;
 
             case PropSO.PropOrigin.TopRight:
+                offset = new Vector3(0, 0);
+
                 for (int x = 0; x < prop.PropSize.x; x++)
                     for (int y = 0; y < prop.PropSize.y; y++)
                         room.PropPositions.Add(originTile + new Vector2Int(-x, -y));
                 break;
 
             case PropSO.PropOrigin.BottomLeft:
+                offset = new Vector3(prop.PropSize.x * .5f, prop.PropSize.y * .5f);
+
                 for (int x = 0; x < prop.PropSize.x; x++)
                     for (int y = 0; y < prop.PropSize.y; y++)
                         room.PropPositions.Add(originTile + new Vector2Int(x, y));
-
                 break;
 
             case PropSO.PropOrigin.BottomRight:
+                offset = new Vector3(0, prop.PropSize.y * .5f);
+
                 for (int x = 0; x < prop.PropSize.x; x++)
                     for (int y = 0; y < prop.PropSize.y; y++)
                         room.PropPositions.Add(originTile + new Vector2Int(-x, y));
                 break;
 
             default:
-                break;
+                throw new NotSupportedException();
         }
 
+        room.PropObjects.Add(Instantiate(prop.propPrefab, (Vector3Int)originTile + offset, Quaternion.identity, transform));
     }
 
     private bool TryPlaceProp(Room room, Vector2Int tileToPlaceOn, PropSO prop)
@@ -200,23 +214,38 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         switch (prop.origin)
         {
             case PropSO.PropOrigin.TopLeft:
-                break;
-            case PropSO.PropOrigin.TopRight:
-                break;
-            case PropSO.PropOrigin.BottomLeft:
-                for (int i = 0; i < prop.PropSize.x; i++)
-                    for (int j = 0; j < prop.PropSize.y; j++)
-                        if (!availableTiles.Contains(originTile + new Vector2Int(i, j)))
+                for (int x = 0; x < prop.PropSize.x; x++)
+                    for (int y = 0; y < prop.PropSize.y; y++)
+                        if (!availableTiles.Contains(originTile + new Vector2Int(x, -y)))
                             return false;
-
-                return true;
-            case PropSO.PropOrigin.BottomRight:
                 break;
+
+            case PropSO.PropOrigin.TopRight:
+                for (int x = 0; x < prop.PropSize.x; x++)
+                    for (int y = 0; y < prop.PropSize.y; y++)
+                        if (!availableTiles.Contains(originTile + new Vector2Int(-x, -y)))
+                            return false;
+                break;
+
+            case PropSO.PropOrigin.BottomLeft:
+                for (int x = 0; x < prop.PropSize.x; x++)
+                    for (int y = 0; y < prop.PropSize.y; y++)
+                        if (!availableTiles.Contains(originTile + new Vector2Int(x, y)))
+                            return false;
+                break;
+
+            case PropSO.PropOrigin.BottomRight:
+                for (int x = 0; x < prop.PropSize.x; x++)
+                    for (int y = 0; y < prop.PropSize.y; y++)
+                        if (!availableTiles.Contains(originTile + new Vector2Int(-x, y)))
+                            return false;
+                break;
+
             default:
                 break;
         }
 
-        return false;
+        return true;
     }
     #endregion
 

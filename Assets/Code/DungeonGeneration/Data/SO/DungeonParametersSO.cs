@@ -85,8 +85,8 @@ public class DungeonParametersSO : ScriptableObject
         [SerializeField] private float chance;
         [SerializeField] private Room.RoomType value;
 
-        private int minimumNumberOfEnemies;
-        private int maximumNumberOfEnemies;
+        [SerializeField] private int minimumNumberOfEnemies;
+        [SerializeField] private int maximumNumberOfEnemies;
 
         [SerializeField] private List<PropChance> specificRoomProps;
         [SerializeField] private List<EnemyChance> specificRoomEnemies;

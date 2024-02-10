@@ -29,7 +29,7 @@ public class PropSO : ScriptableObject
     public int groupMinCount;
     public int groupMaxCount;
 
-    private Vector2Int propSize = Vector2Int.one;
+    [SerializeField] private Vector2Int propSize = Vector2Int.one;
     public PropOrigin origin;
 
     public Vector2Int PropSize

@@ -6,12 +6,12 @@ public class PropSO : ScriptableObject
 {
     public enum PropPlacementType
     {
-        Center = 1,
-        NextToTopWall = 2,
-        NextToRightWall = 4,
-        NextToBottomWall = 8,
-        NextToLeftWall = 16,
-        Corner = 32,
+        Inner = 1 << 0,
+        NextToTopWall = 1 << 1,
+        NextToRightWall = 1 << 2,
+        NextToBottomWall = 1 << 3,
+        NextToLeftWall = 1 << 4,
+        Corner = 1 << 5,
     }
 
     public enum PropOrigin

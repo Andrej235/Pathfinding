@@ -16,7 +16,7 @@ namespace Assets.Code.DungeonGeneration.Models
             Boss = 1 << 4,
             Everything = uint.MaxValue,
         }
-        public RoomType type;
+        public RoomType Type { get; private set; }
 
         public Room(HashSet<Vector2Int> floor, Vector2 roomCenter)
         {
@@ -62,7 +62,7 @@ namespace Assets.Code.DungeonGeneration.Models
             TilesNextToBottomWall.ExceptWith(CornerTiles);
             TilesNextToLeftWall.ExceptWith(CornerTiles);
 
-            type = RoomType.None;
+            Type = RoomType.None;
         }
 
         public Vector2 RoomCenter { get; }
@@ -82,9 +82,20 @@ namespace Assets.Code.DungeonGeneration.Models
 
         public HashSet<Vector2Int> TilesAccessibleFromPath { get; set; } = new();
 
+        private DungeonParametersSO.RoomParameters parameters;
+        public DungeonParametersSO.RoomParameters Parameters
+        {
+            get => parameters;
+            set
+            {
+                parameters = value;
+                Type = value.Type;
+            }
+        }
+
         public HashSet<Vector2Int> GetTiles(PropSO.PropPlacementType propPlacementType) => propPlacementType switch
         {
-            PropSO.PropPlacementType.Center => InnerTiles,
+            PropSO.PropPlacementType.Inner => InnerTiles,
             PropSO.PropPlacementType.NextToTopWall => TilesNextToTopWall,
             PropSO.PropPlacementType.NextToRightWall => TilesNextToRightWall,
             PropSO.PropPlacementType.NextToBottomWall => TilesNextToBottomWall,

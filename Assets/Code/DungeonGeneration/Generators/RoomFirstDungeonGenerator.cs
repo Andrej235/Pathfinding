@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+#nullable enable
 public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
 {
     [SerializeField] private int minRoomWidth = 4;
@@ -16,6 +17,9 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
 
     protected override IEnumerable<Vector2Int> RunProceduralGeneration()
     {
+        if (tileMapVisualizer is null)
+            return new List<Vector2Int>();
+
         var roomBoundsList = ProceduralGenerationAlgorithms.BinarySpacePartitioning(new((Vector3Int)startPosition, new(dungeonWidth, dungeonHeight)), minRoomWidth, minRoomHeight);
         HashSet<Vector2Int> dungeonFloorPositions = CreateRooms(roomBoundsList);
 
@@ -53,28 +57,25 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
     }
 
     #region Props
-    protected override void PlaceProps()
+    protected override void PlaceProps(Room room)
     {
-        foreach (var room in dungeonData.Rooms)
-            PopulateRoomWithProps(room);
-    }
-
-    private void PopulateRoomWithProps(Room room)
-    {
-        PopulateFloorTilesWithProps(room, PropSO.PropPlacementType.Center);
+        PopulateFloorTilesWithProps(room, PropSO.PropPlacementType.Corner);
         PopulateFloorTilesWithProps(room, PropSO.PropPlacementType.NextToTopWall);
         PopulateFloorTilesWithProps(room, PropSO.PropPlacementType.NextToRightWall);
         PopulateFloorTilesWithProps(room, PropSO.PropPlacementType.NextToBottomWall);
         PopulateFloorTilesWithProps(room, PropSO.PropPlacementType.NextToLeftWall);
-        PopulateFloorTilesWithProps(room, PropSO.PropPlacementType.Corner);
+        PopulateFloorTilesWithProps(room, PropSO.PropPlacementType.Inner);
     }
 
     private void PopulateFloorTilesWithProps(Room room, PropSO.PropPlacementType propPlacementType)
     {
-        var specificRoomTypeProps = parameters.roomTypesChance.FirstOrDefault(x => x.Value == room.type)?.SpecificRoomPropsChance;
+        if (parameters == null)
+            return;
+
+        var possibleRoomParameters = parameters.roomParameters.Where(x => x.Type == room.Type);
 
         var possibleProps = parameters.propsChance
-            .Union(specificRoomTypeProps ?? new())
+            .Union(possibleRoomParameters.Any() ? possibleRoomParameters.GetByChance().SpecificRoomPropsChance : new())
             .Where(x => x.Value.placementType.HasFlag(propPlacementType));
 
         if (possibleProps.Count() <= 0)
@@ -86,52 +87,61 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
                 continue;
 
             if (RNG.Chance(parameters.chanceToSpawnAProp / 100f))
-            {
-                var prop = possibleProps.GetByChance();
-                PlaceProp(room, tile, prop);
-
-                if (prop.placeAsAGroup)
-                {
-                    var currentTile = tile;
-                    var groupSize = RNG.Get(prop.groupMinCount - 1, prop.groupMaxCount); //min - 1 because the original one is spawned regardless, max stays the same as it is exclusive (not included in rng)
-
-                    HashSet<Vector2Int> groupMemberPositions = new() { tile };
-
-                    int notFoundCount = 0;
-                    int maxNotFoundCount = groupSize / 3;
-
-                    for (int i = 0; i < groupSize; i++)
-                    {
-                        bool foundTile = false;
-                        for (int j = 0; j < RNG.Get(1, 4); j++)
-                        {
-                            var direction = Directions.RandomCardinalDirection * Math.Min(prop.PropSize.x, prop.PropSize.y);
-                            var neighbourTile = currentTile + direction;
-
-                            var success = PlaceProp(room, neighbourTile, prop);
-                            if (success)
-                            {
-                                foundTile = true;
-                                currentTile = neighbourTile;
-                                groupMemberPositions.Add(neighbourTile);
-                                break;
-                            }
-                        }
-
-                        if (!foundTile)
-                        {
-                            if (notFoundCount < maxNotFoundCount)
-                                currentTile = groupMemberPositions.GetRandomElement();
-                            else
-                                return;
-                        }
-                    }
-                }
-            }
+                PlaceProp(room, tile, possibleProps.GetByChance());
         }
     }
 
-    private bool PlaceProp(Room room, Vector2Int originTile, PropSO prop)
+    private void PlaceProp(Room room, Vector2Int originTile, PropSO prop)
+    {
+        if (prop.placeAsAGroup)
+            PlacePropAsGroup(room, originTile, prop);
+        else
+            PlaceSingleProp(room, originTile, prop);
+    }
+
+    private bool PlacePropAsGroup(Room room, Vector2Int originTile, PropSO prop)
+    {
+        if (!PlaceSingleProp(room, originTile, prop))
+            return false;
+
+        var currentoriginTile = originTile;
+        var groupSize = RNG.Get(prop.groupMinCount - 1, prop.groupMaxCount); //min - 1 because the original one is spawned regardless, max stays the same as it is exclusive (not included in rng)
+
+        HashSet<Vector2Int> groupMemberPositions = new() { originTile };
+
+        int notFoundCount = 0;
+        int maxNotFoundCount = groupSize / 3;
+
+        for (int i = 0; i < groupSize; i++)
+        {
+            bool foundoriginTile = false;
+            for (int j = 0; j < RNG.Get(1, 4); j++)
+            {
+                var direction = Directions.RandomCardinalDirection * Math.Min(prop.PropSize.x, prop.PropSize.y);
+                var neighbouroriginTile = currentoriginTile + direction;
+
+                var success = PlaceSingleProp(room, neighbouroriginTile, prop);
+                if (success)
+                {
+                    foundoriginTile = true;
+                    currentoriginTile = neighbouroriginTile;
+                    groupMemberPositions.Add(neighbouroriginTile);
+                    break;
+                }
+            }
+
+            if (!foundoriginTile)
+            {
+                if (notFoundCount < maxNotFoundCount)
+                    currentoriginTile = groupMemberPositions.GetRandomElement();
+                else
+                    break;
+            }
+        }
+        return true;
+    }
+
+    private bool PlaceSingleProp(Room room, Vector2Int originTile, PropSO prop)
     {
         if (!TryPlaceProp(room, originTile, prop))
             return false;
@@ -194,16 +204,16 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
         PropSO.PropPlacementType placementType = prop.placementType;
 
         //Go through each PropSO.PropPlacementType and check if the tileToPlaceOn is a part of a collection which given prop can be placed on
-        return ((placementType.HasFlag(PropSO.PropPlacementType.Center) && room.InnerTiles.Contains(tileToPlaceOn))
+        return ((placementType.HasFlag(PropSO.PropPlacementType.Inner) && room.InnerTiles.Contains(tileToPlaceOn))
             || (placementType.HasFlag(PropSO.PropPlacementType.NextToTopWall) && room.TilesNextToTopWall.Contains(tileToPlaceOn))
             || (placementType.HasFlag(PropSO.PropPlacementType.NextToRightWall) && room.TilesNextToRightWall.Contains(tileToPlaceOn))
             || (placementType.HasFlag(PropSO.PropPlacementType.NextToBottomWall) && room.TilesNextToBottomWall.Contains(tileToPlaceOn))
             || (placementType.HasFlag(PropSO.PropPlacementType.NextToLeftWall) && room.TilesNextToLeftWall.Contains(tileToPlaceOn))
             || (placementType.HasFlag(PropSO.PropPlacementType.Corner) && room.CornerTiles.Contains(tileToPlaceOn)))
-            && TryPlacePropOnMultipleTiles(room, tileToPlaceOn, prop);
+            && TryPlacePropBasedOnItsSize(room, tileToPlaceOn, prop);
     }
 
-    private bool TryPlacePropOnMultipleTiles(Room room, Vector2Int originTile, PropSO prop)
+    private bool TryPlacePropBasedOnItsSize(Room room, Vector2Int originTile, PropSO prop)
     {
         if (prop.PropSize == Vector2Int.one)
             return true;
@@ -249,19 +259,16 @@ public class RoomFirstDungeonGenerator : AbstractDungeonGenerator
     #endregion
 
     #region Enemies
-    protected override void SpawnEnemies()
+    protected override void SpawnEnemies(Room room)
     {
-        foreach (var room in dungeonData.Rooms)
-            PopulateRoomWithEnemies(room);
-    }
+        if (parameters == null)
+            return;
 
-    private void PopulateRoomWithEnemies(Room room)
-    {
-        var roomParameters = parameters.roomTypesChance.FirstOrDefault(x => x.Value == room.type);
+        var roomParameters = parameters.roomParameters.FirstOrDefault(x => x.Type == room.Type);
         if (roomParameters is null)
             return;
 
-        var possibleEnemies = parameters.enemiesChance.Where(x => room.type.HasFlag(x.RoomType)).Union(roomParameters.SpecificRoomEnemies);
+        var possibleEnemies = parameters.enemiesChance.Where(x => room.Type.HasFlag(x.RoomType)).Union(roomParameters.SpecificRoomEnemies);
         if (!possibleEnemies.Any())
             return;
 

@@ -82,5 +82,48 @@ namespace Assets.Code.Inventory
                 Storage = storage ?? new(20)
             };
         }
+
+        public static bool EquipAccessory(IAccessory accessory)
+        {
+            return true;
+        }
+
+        public static bool EquipWeapon(IWeapon weapon)
+        {
+            return true;
+        }
+
+        public static bool EquipAbility(IAbility ability)
+        {
+            return true;
+        }
+
+        public static IAccessory? UnequipAccessory(int index = 0)
+        {
+            if (index < 0 || index >= Inventory.Accessories.Length)
+                return null;
+
+            IAccessory? accessory;
+            (accessory, Inventory.Accessories[index]) = (Inventory.Accessories[index], null);
+            return accessory;
+        }
+
+        public static IWeapon? UnequipWeapon()
+        {
+            IWeapon? weapon;
+            (weapon, Inventory.Weapon) = (Inventory.Weapon, null);
+            return weapon;
+        }
+
+        public static IAbility? UnequipAbility(int index = 0)
+        {
+            IAbility? ability = null;
+            if (index == 0)
+                (ability, Inventory.LeftAbility) = (Inventory.LeftAbility, null);
+            else if (index == 1)
+                (ability, Inventory.RightAbility) = (Inventory.RightAbility, null);
+
+            return ability;
+        }
     }
 }

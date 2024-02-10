@@ -6,6 +6,6 @@ namespace Assets.Code.Items.Interfaces
     {
         string Name { get; }
         int MaxStack { get; }
-        Texture Icon { get; }
+        Sprite Icon { get; }
     }
 }

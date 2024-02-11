@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Playables;
 
 namespace Assets.Code.Inventory
 {
@@ -212,7 +213,7 @@ namespace Assets.Code.Inventory
         /// Decreases amount of items inside a slot with the given index
         /// </summary>
         /// <returns>Number of items taken, -1 if index was outside of bounds or item in the slot is null</returns>
-        public int TakeFromSlot(int index, int amount)
+        public int TakeFromSlot(int index, int amount = int.MaxValue)
         {
             if (index < 0 || index >= storage.Length)
                 return -1;
@@ -234,6 +235,8 @@ namespace Assets.Code.Inventory
                 itemsTaken = amount;
                 slot.Amount -= amount;
             }
+
+            OnSlotChanged?.Invoke(this, new(storage.GetIndexOf(slot), slot.Amount, slot.Item));
             return itemsTaken;
         }
 
@@ -291,6 +294,83 @@ namespace Assets.Code.Inventory
             var slot2 = storage[index2];
             OnSlotChanged?.Invoke(this, new(index1, slot1.Amount, slot1.Item));
             OnSlotChanged?.Invoke(this, new(index2, slot2.Amount, slot2.Item));
+        }
+
+        /// <summary>
+        /// Tries to equip an item which is inside a slot with a given index
+        /// </summary>
+        /// <returns>False if index was out of bounds, item was not an IEquipable or there is no space in <see cref="InventoryManager.Inventory"/> to equip the given item</returns>
+        public bool TryEquip(int index)
+        {
+            if (index < 0 || index >= storage.Length)
+                return false;
+
+            var slot = storage[index];
+            if (slot.Item is not IEquipable)
+                return false;
+
+            bool success = slot.Item switch
+            {
+                IWeapon weapon => InventoryManager.EquipWeapon(weapon),
+                IAbility ability => InventoryManager.EquipAbility(ability),
+                IAccessory accessory => InventoryManager.EquipAccessory(accessory),
+                _ => false,
+            };
+
+            if (!success)
+                return false;
+
+            TakeFromSlot(index);
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to equip an item which is inside a slot with a given index
+        /// <br />If there are no free slots corresponding to it's type, it will first unequip an already equipped item
+        /// </summary>
+        /// <returns>Item it unequipped, null if there was a free slot, index was out of bounds or item was not an IEquipable</returns>
+        public IEquipable? EquipAgressive(int index)
+        {
+            if (index < 0 || index >= storage.Length)
+                return null;
+
+            var slot = storage[index];
+            if (slot.Item is not IEquipable)
+                return null;
+
+            IEquipable? unequipedEquipable = null;
+
+            switch (slot.Item)
+            {
+                case IWeapon weapon:
+                    unequipedEquipable = InventoryManager.UnequipWeapon();
+                    InventoryManager.EquipWeapon(weapon);
+                    break;
+
+                case IAbility ability:
+                    //In case there is an empty ability slot just equip the item
+                    if (InventoryManager.EquipAbility(ability))
+                        break;
+
+                    unequipedEquipable = InventoryManager.UnequipAbility();
+                    InventoryManager.EquipAbility(ability);
+                    break;
+
+                case IAccessory accessory:
+                    //In case there is an empty accessory slot just equip the item
+                    if (InventoryManager.EquipAccessory(accessory))
+                        break;
+
+                    unequipedEquipable = InventoryManager.UnequipAccessory();
+                    InventoryManager.EquipAccessory(accessory);
+                    break;
+
+                default:
+                    break;
+            }
+
+            TakeFromSlot(index);
+            return unequipedEquipable;
         }
     }
 }

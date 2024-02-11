@@ -1,7 +1,7 @@
-using UnityEngine;
+using Assets.Code.Items.Interfaces;
 
-[CreateAssetMenu(fileName = "Equipable", menuName = "Item/Equipable")]
-public class EquipableSO : ItemSO
+public abstract class EquipableSO : ItemSO, IEquipable
 {
-
+    public abstract void Equip();
+    public abstract void Unequip();
 }

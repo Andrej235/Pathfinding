@@ -7,9 +7,8 @@ namespace Assets.Code.Inventory
     public class InventoryDTO
     {
         public int Weapon;
-        public int RightAbility;
-        public int LeftAbility;
         public List<StorageSlotDTO> Storage;
         public List<int> Accessories;
+        public List<int> Abilities;
     }
 }

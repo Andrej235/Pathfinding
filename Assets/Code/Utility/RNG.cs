@@ -10,6 +10,7 @@ namespace Assets.Code.Utility
         private static readonly Random random = new();
 
         public static bool Chance(double chance) => random.NextDouble() <= chance;
+        public static bool ChanceOf100(double chance) => random.NextDouble() <= chance;
 
         public static int Get(int min, int max) => random.Next(min, max);
         public static float Get(float min, float max) => ((float)random.NextDouble() * (max - min) + max);
@@ -44,6 +45,8 @@ namespace Assets.Code.Utility
 
             return possibleValues.Last().Value;
         }
+        public static IEnumerable<T> GetManyByChance<T>(this IEnumerable<IChance<T>> possibleValues) => possibleValues.Where(x => ChanceOf100(x.Chance)).Select(x => x.Value);
+
 
         public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> values) => values.OrderBy(x => Guid.NewGuid());
     }

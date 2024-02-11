@@ -329,7 +329,7 @@ namespace Assets.Code.Inventory
         /// <br />If there are no free slots corresponding to it's type, it will first unequip an already equipped item
         /// </summary>
         /// <returns>Item it unequipped, null if there was a free slot, index was out of bounds or item was not an IEquipable</returns>
-        public IEquipable? TryEquipAgressive(int index)
+        public IEquipable? EquipAgressive(int index)
         {
             if (index < 0 || index >= storage.Length)
                 return null;

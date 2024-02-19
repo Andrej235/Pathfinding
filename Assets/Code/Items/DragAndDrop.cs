@@ -16,7 +16,8 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     private Transform originalParent;
 
     //Drop
-    private bool onRightClick;
+    private bool IODropMenu = false;
+    [SerializeField] private GameObject dropMenu;
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -52,9 +53,10 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if(eventData.button == PointerEventData.InputButton.Right)
+        if (eventData.button == PointerEventData.InputButton.Right)
         {
-
+            IODropMenu = !IODropMenu;
+            dropMenu.SetActive(IODropMenu);
         }
     }
 }
